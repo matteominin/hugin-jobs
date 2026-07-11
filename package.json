@@ -1,0 +1,25 @@
+{
+  "name": "hugin-jobs",
+  "version": "0.1.0",
+  "description": "Periodically fetches job listings per portal config and uses an LLM to match them to a described position, notifying Telegram subscribers.",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc",
+    "seed": "tsx src/seed.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/deepseek": "^1.0.0",
+    "ai": "^4.0.0",
+    "cheerio": "^1.0.0",
+    "dotenv": "^16.4.0",
+    "mongodb": "^6.10.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}
