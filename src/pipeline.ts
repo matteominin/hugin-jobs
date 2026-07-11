@@ -26,40 +26,36 @@ export async function runPortal(portal: Portal): Promise<void> {
   const extracted = await extract(portal, body);
   console.log(`${tag} extracted ${extracted.length} jobs`);
 
-  const settings = await loadSettings();
+  // Persist unseen jobs. Unique index on (portalId, hash) guards races.
   let newCount = 0;
-
   for (const raw of extracted) {
     const hash = hashJob(portalId.toString(), raw);
-
-    // Insert only if unseen; unique index on (portalId, hash) guards races.
-    const doc: Job = {
-      ...raw,
-      portalId,
-      hash,
-      notified: false,
-      createdAt: new Date(),
-    };
-    const insert = await jobsCol().updateOne(
+    const doc: Job = { ...raw, portalId, hash, notified: false, createdAt: new Date() };
+    const res = await jobsCol().updateOne(
       { portalId, hash },
       { $setOnInsert: doc },
       { upsert: true },
     );
-    if (!insert.upsertedId) continue; // already seen
-    newCount++;
+    if (res.upsertedId) newCount++;
+  }
+  console.log(`${tag} ${newCount} new job(s), ${extracted.length - newCount} already seen`);
 
-    const verdict = await judge(raw, settings, portal.promptOverride);
-    await jobsCol().updateOne({ portalId, hash }, { $set: { match: verdict } });
+  // Judge every stored job without a verdict yet (new ones + past failures).
+  const settings = await loadSettings();
+  const pending = await jobsCol().find({ portalId, match: { $exists: false } }).toArray();
+  for (const job of pending) {
+    const verdict = await judge(job, settings, portal.promptOverride);
+    await jobsCol().updateOne({ _id: job._id }, { $set: { match: verdict } });
     console.log(
-      `${tag} judged "${raw.title}" → suitable=${verdict.suitable} score=${verdict.score.toFixed(2)}`,
+      `${tag} judged "${job.title}" → suitable=${verdict.suitable} score=${verdict.score.toFixed(2)}`,
     );
 
     if (verdict.suitable) {
-      await notify({ ...doc, match: verdict });
-      await jobsCol().updateOne({ portalId, hash }, { $set: { notified: true } });
+      await notify({ ...job, match: verdict });
+      await jobsCol().updateOne({ _id: job._id }, { $set: { notified: true } });
     }
   }
 
   await portalsCol().updateOne({ _id: portalId }, { $set: { lastRunAt: new Date() } });
-  console.log(`${tag} run done — ${newCount} new job(s)`);
+  console.log(`${tag} run done`);
 }
