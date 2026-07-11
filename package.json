@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@ai-sdk/deepseek": "^1.0.0",
-    "ai": "^4.0.0",
+    "ai": "^5.0.210",
     "cheerio": "^1.0.0",
     "dotenv": "^16.4.0",
     "mongodb": "^6.10.0",
