@@ -24,7 +24,8 @@ const settings: Settings = {
 const portalsSeed: Portal[] = [
   {
     // amazon.jobs public search API: base_query=intern + European country codes.
-    // Full descriptions inline, single paged request. See src/sources/amazon.ts.
+    // Full descriptions inline; newest-first crawl that stops at the first job
+    // already stored for this portal. See src/sources/amazon.ts.
     name: 'Amazon (EU interns)',
     enabled: true,
     intervalSeconds: 60 * 20,
