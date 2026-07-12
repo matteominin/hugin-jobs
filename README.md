@@ -163,3 +163,8 @@ the LLM. Its portal record is just:
 { name: "Celonis (interns)", enabled: true, intervalSeconds: 3600,
   source: "celonis", sourceOptions: { seniorities: ["Working Student & Intern"] } }
 ```
+
+The **`amazon`** source (`src/sources/amazon.ts`) is similar: it queries the public
+amazon.jobs search API (`base_query=intern` + European country codes), which returns full
+descriptions and qualifications inline — a single paged request, no detail fetches.
+`sourceOptions` accepts `query` and `countries` (ISO-3166 alpha-3) overrides.

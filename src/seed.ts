@@ -24,13 +24,23 @@ const settings: Settings = {
 // Celonis (Munich-based) is served by the `celonis` code source: it prefilters
 // the DXP list by seniority (interns only) and joins Greenhouse for the full
 // descriptions — two fetches, no per-job detail calls. See src/sources/celonis.ts.
-const samplePortal: Portal = {
-  name: 'Celonis (interns)',
-  enabled: true,
-  intervalSeconds: 3600,
-  source: 'celonis',
-  sourceOptions: { seniorities: ['Working Student & Intern'] },
-};
+const portalsSeed: Portal[] = [
+  {
+    name: 'Celonis (interns)',
+    enabled: true,
+    intervalSeconds: 3600,
+    source: 'celonis',
+    sourceOptions: { seniorities: ['Working Student & Intern'] },
+  },
+  {
+    // amazon.jobs public search API: base_query=intern + European country codes.
+    // Full descriptions inline, single paged request. See src/sources/amazon.ts.
+    name: 'Amazon (EU interns)',
+    enabled: true,
+    intervalSeconds: 3600,
+    source: 'amazon',
+  },
+];
 
 async function main(): Promise<void> {
   await connect();
@@ -38,12 +48,10 @@ async function main(): Promise<void> {
   await settingsCol().updateOne({}, { $set: settings }, { upsert: true });
   console.log('[seed] settings upserted');
 
-  await portalsCol().updateOne(
-    { name: samplePortal.name },
-    { $set: samplePortal },
-    { upsert: true },
-  );
-  console.log(`[seed] portal "${samplePortal.name}" upserted`);
+  for (const portal of portalsSeed) {
+    await portalsCol().updateOne({ name: portal.name }, { $set: portal }, { upsert: true });
+    console.log(`[seed] portal "${portal.name}" upserted`);
+  }
 
   await close();
 }

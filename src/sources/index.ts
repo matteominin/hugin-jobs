@@ -1,4 +1,5 @@
 import type { Portal, RawJob } from '../types.js';
+import { AmazonSource } from './amazon.js';
 import { CelonisSource } from './celonis.js';
 import { ConfigSource } from './config.js';
 
@@ -14,6 +15,7 @@ export interface Source {
 /** Named code sources for portals that config can't express. */
 const registry: Record<string, (portal: Portal) => Source> = {
   celonis: (portal) => new CelonisSource(portal),
+  amazon: (portal) => new AmazonSource(portal),
 };
 
 /** Resolve the Source for a portal: a named code source, else the config source. */
