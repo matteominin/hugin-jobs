@@ -40,6 +40,38 @@ const portalsSeed: Portal[] = [
     intervalSeconds: 60 * 20,
     source: 'amazon',
   },
+  {
+    // Oracle Recruiting Cloud REST search (keyword=intern), paged and prefiltered
+    // to Europe by country code. See src/sources/oracle.ts.
+    name: 'Oracle (EU interns)',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'oracle',
+  },
+  {
+    // lifeatspotify.com engineering category, intern-titled roles. List-only (no
+    // descriptions); the LLM judge applies the Europe rule. See src/sources/spotify.ts.
+    name: 'Spotify (engineering interns)',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'spotify',
+  },
+  {
+    // Uber careers POST search (query=intern) across European country codes.
+    // See src/sources/uber.ts.
+    name: 'Uber (EU interns)',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'uber',
+  },
+  {
+    // Bolt (bolt.eu) custom Next.js careers page, intern-titled roles in Europe
+    // scraped from the embedded RSC payload. See src/sources/bolt.ts.
+    name: 'Bolt (EU interns)',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'bolt',
+  },
 ];
 
 async function main(): Promise<void> {
