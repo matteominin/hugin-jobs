@@ -28,7 +28,7 @@ const portalsSeed: Portal[] = [
   {
     name: 'Celonis (interns)',
     enabled: true,
-    intervalSeconds: 3600,
+    intervalSeconds: 60 * 20,
     source: 'celonis',
     sourceOptions: { seniorities: ['Working Student & Intern'] },
   },
@@ -37,7 +37,7 @@ const portalsSeed: Portal[] = [
     // Full descriptions inline, single paged request. See src/sources/amazon.ts.
     name: 'Amazon (EU interns)',
     enabled: true,
-    intervalSeconds: 3600,
+    intervalSeconds: 60 * 20,
     source: 'amazon',
   },
 ];
