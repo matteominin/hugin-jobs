@@ -21,17 +21,7 @@ const settings: Settings = {
     'Not interested in non-technical roles (sales, marketing, HR, etc.).',
 };
 
-// Celonis (Munich-based) is served by the `celonis` code source: it prefilters
-// the DXP list by seniority (interns only) and joins Greenhouse for the full
-// descriptions — two fetches, no per-job detail calls. See src/sources/celonis.ts.
 const portalsSeed: Portal[] = [
-  {
-    name: 'Celonis (interns)',
-    enabled: true,
-    intervalSeconds: 60 * 20,
-    source: 'celonis',
-    sourceOptions: { seniorities: ['Working Student & Intern'] },
-  },
   {
     // amazon.jobs public search API: base_query=intern + European country codes.
     // Full descriptions inline, single paged request. See src/sources/amazon.ts.
@@ -39,14 +29,6 @@ const portalsSeed: Portal[] = [
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'amazon',
-  },
-  {
-    // Oracle Recruiting Cloud REST search (keyword=intern), paged and prefiltered
-    // to Europe by country code. See src/sources/oracle.ts.
-    name: 'Oracle (EU interns)',
-    enabled: true,
-    intervalSeconds: 60 * 20,
-    source: 'oracle',
   },
   {
     // lifeatspotify.com engineering category, intern-titled roles. List-only (no

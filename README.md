@@ -153,18 +153,15 @@ the source only has to return `RawJob[]`.
 3. On the portal record, set `source: "<key>"` (and optional `sourceOptions`). The config
    fields (`request`/`transport`/`strategy`/`extraction`) are then ignored.
 
-Example — the built-in **`celonis`** source (`src/sources/celonis.ts`): Celonis' DXP API has a
-`seniority` field but no descriptions; its Greenhouse board has descriptions but no seniority.
-The source fetches both **once**, prefilters the DXP list to interns, and joins Greenhouse by id
-for the descriptions — two requests total, no per-job detail calls, and ~90% fewer jobs sent to
-the LLM. Its portal record is just:
+Example — the built-in **`amazon`** source (`src/sources/amazon.ts`): it queries the public
+amazon.jobs search API (`base_query=intern` + European country codes), which returns full
+descriptions and qualifications inline — a single paged request, no per-job detail fetches, and
+a title/country prefilter that cuts most jobs before the LLM. Its portal record is just:
 
 ```js
-{ name: "Celonis (interns)", enabled: true, intervalSeconds: 3600,
-  source: "celonis", sourceOptions: { seniorities: ["Working Student & Intern"] } }
+{ name: "Amazon (EU interns)", enabled: true, intervalSeconds: 3600, source: "amazon" }
 ```
 
-The **`amazon`** source (`src/sources/amazon.ts`) is similar: it queries the public
-amazon.jobs search API (`base_query=intern` + European country codes), which returns full
-descriptions and qualifications inline — a single paged request, no detail fetches.
-`sourceOptions` accepts `query` and `countries` (ISO-3166 alpha-3) overrides.
+`sourceOptions` accepts `query` and `countries` (ISO-3166 alpha-3) overrides. The other code
+sources (`spotify`, `uber`, `bolt`, `stripe`) follow the same shape: fetch once, prefilter to
+intern-titled roles, and let the LLM judge apply the Europe + software rules.
