@@ -5,6 +5,7 @@ import { CelonisSource } from './celonis.js';
 import { ConfigSource } from './config.js';
 import { OracleSource } from './oracle.js';
 import { SpotifySource } from './spotify.js';
+import { StripeSource } from './stripe.js';
 import { UberSource } from './uber.js';
 
 /**
@@ -24,6 +25,7 @@ const registry: Record<string, (portal: Portal) => Source> = {
   spotify: (portal) => new SpotifySource(portal),
   uber: (portal) => new UberSource(portal),
   bolt: (portal) => new BoltSource(portal),
+  stripe: (portal) => new StripeSource(portal),
 };
 
 /** Resolve the Source for a portal: a named code source, else the config source. */

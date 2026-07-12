@@ -72,6 +72,14 @@ const portalsSeed: Portal[] = [
     intervalSeconds: 60 * 20,
     source: 'bolt',
   },
+  {
+    // Stripe's Greenhouse board (full descriptions inline), prefiltered to
+    // intern-titled roles; the LLM judge applies the Europe rule. See src/sources/stripe.ts.
+    name: 'Stripe (interns)',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'stripe',
+  },
 ];
 
 async function main(): Promise<void> {
