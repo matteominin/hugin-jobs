@@ -21,29 +21,15 @@ const settings: Settings = {
     'Not interested in non-technical roles (sales, marketing, HR, etc.).',
 };
 
-// Celonis (Munich-based) publishes on Greenhouse, whose JSON API returns full
-// description + location — so the Europe/internship/education filters can work.
-// Also exercises the `json` strategy end-to-end.
+// Celonis (Munich-based) is served by the `celonis` code source: it prefilters
+// the DXP list by seniority (interns only) and joins Greenhouse for the full
+// descriptions — two fetches, no per-job detail calls. See src/sources/celonis.ts.
 const samplePortal: Portal = {
-  name: 'Celonis (Greenhouse)',
+  name: 'Celonis (interns)',
   enabled: true,
   intervalSeconds: 3600,
-  request: {
-    url: 'https://boards-api.greenhouse.io/v1/boards/celonis/jobs?content=true',
-    method: 'GET',
-  },
-  transport: 'http',
-  strategy: 'json',
-  extraction: {
-    jobsPath: 'jobs',
-    fields: {
-      title: 'title',
-      url: 'absolute_url',
-      description: 'content',
-      company: 'company_name',
-      location: 'location.name',
-    },
-  },
+  source: 'celonis',
+  sourceOptions: { seniorities: ['Working Student & Intern'] },
 };
 
 async function main(): Promise<void> {

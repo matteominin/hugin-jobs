@@ -1,8 +1,7 @@
 import { createHash } from 'node:crypto';
 import { jobs as jobsCol, portals as portalsCol, settings as settingsCol } from './db.js';
-import { extract } from './extractors/index.js';
-import type { Fetcher } from './fetchers/index.js';
 import { judge } from './llm/judge.js';
+import type { Source } from './sources/index.js';
 import { notify } from './telegram.js';
 import type { Job, Portal, RawJob, Settings } from './types.js';
 
@@ -11,25 +10,24 @@ function hashJob(portalId: string, job: RawJob): string {
 }
 
 /**
- * Runs one portal end-to-end: fetch → extract → dedup → judge → notify.
- * The transport is injected as a Fetcher, so the runner stays agnostic to how
- * the raw content is retrieved (HTTP, headless browser, …).
+ * Runs one portal end-to-end: produce jobs → dedup → judge → notify.
+ * The Source (how the job list is produced) is injected, so the runner stays
+ * agnostic to config-driven vs bespoke code sources.
  */
 export class JobRunner {
   constructor(
     private readonly portal: Portal,
-    private readonly fetcher: Fetcher,
+    private readonly source: Source,
   ) {}
 
   async run(): Promise<void> {
     const { portal } = this;
     const portalId = portal._id!;
     const tag = `[${portal.name}]`;
-    console.log(`${tag} run start (transport=${portal.transport}, strategy=${portal.strategy})`);
+    console.log(`${tag} run start (source=${portal.source ?? `config:${portal.strategy}`})`);
 
-    const body = await this.fetcher.fetch(portal.request);
-    const extracted = extract(portal, body);
-    console.log(`${tag} extracted ${extracted.length} jobs`);
+    const extracted = await this.source.produce();
+    console.log(`${tag} produced ${extracted.length} jobs`);
 
     const newCount = await this.persistNew(portalId, extracted);
     console.log(`${tag} ${newCount} new job(s), ${extracted.length - newCount} already seen`);

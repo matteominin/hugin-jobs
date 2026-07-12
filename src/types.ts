@@ -47,11 +47,19 @@ export interface Portal {
   name: string;
   enabled: boolean;
   intervalSeconds: number;
-  request: RequestConfig;
+  /**
+   * Named code source (see src/sources/). When set, this portal is produced by
+   * that Source class and the config fields below are ignored. When omitted, the
+   * default config-driven source is used and request/transport/strategy are required.
+   */
+  source?: string;
+  /** free-form options passed to a code Source (e.g. { seniorities: [...] }) */
+  sourceOptions?: Record<string, unknown>;
+  request?: RequestConfig;
   /** transport used to fetch the raw content (default: http) */
-  transport: Transport;
-  strategy: Strategy;
-  extraction: Extraction;
+  transport?: Transport;
+  strategy?: Strategy;
+  extraction?: Extraction;
   /** default company for this portal; used when the LLM can't extract one */
   company?: string;
   /** extra matching criteria appended to the global prompt */

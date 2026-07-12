@@ -5,7 +5,9 @@ A long-running service that, per portal config, periodically fetches a job-listi
 ## How it works
 
 1. A scheduler loads enabled **portal** configs from MongoDB and runs each on its own `intervalSeconds` loop.
-2. Each cycle: **fetch** the portal URL (via the configured transport) → **extract** jobs (`css` / `json` strategy) → **dedup** against seen jobs → **judge** each new job with the LLM against the global position → **notify** Telegram subscribers on matches.
+2. Each cycle: **produce** the job list (via the portal's `Source` — config-driven or a code source) → **dedup** against seen jobs → **judge** each new job with the LLM against the global position → **notify** Telegram subscribers on matches.
+
+A **Source** is whatever produces a portal's `RawJob[]`. Most portals use the default config source (fetch + extract, no code). Portals with bespoke needs (prefiltering, detail-fetch, joining two APIs) use a small code source — see [Code sources](#code-sources).
 
 ## Setup
 
@@ -138,3 +140,26 @@ db.portals.insertOne({
 - add it to `src/seed.ts` and run `npm run seed` (upserts by `name`).
 
 New portals are picked up on the next scheduler start (`npm run dev`).
+
+## Code sources
+
+Config covers the common case (one fetch, css/json parse). When a portal needs something
+config can't express — prefiltering before the LLM, per-job detail fetches, joining two APIs —
+write a small **Source** class instead. The `JobRunner` still handles dedup → judge → notify;
+the source only has to return `RawJob[]`.
+
+1. Implement the `Source` interface in `src/sources/` (`produce(): Promise<RawJob[]>`).
+2. Register it in `getSource()` (`src/sources/index.ts`) under a key.
+3. On the portal record, set `source: "<key>"` (and optional `sourceOptions`). The config
+   fields (`request`/`transport`/`strategy`/`extraction`) are then ignored.
+
+Example — the built-in **`celonis`** source (`src/sources/celonis.ts`): Celonis' DXP API has a
+`seniority` field but no descriptions; its Greenhouse board has descriptions but no seniority.
+The source fetches both **once**, prefilters the DXP list to interns, and joins Greenhouse by id
+for the descriptions — two requests total, no per-job detail calls, and ~90% fewer jobs sent to
+the LLM. Its portal record is just:
+
+```js
+{ name: "Celonis (interns)", enabled: true, intervalSeconds: 3600,
+  source: "celonis", sourceOptions: { seniorities: ["Working Student & Intern"] } }
+```

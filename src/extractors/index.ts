@@ -10,6 +10,6 @@ export function extract(portal: Portal, body: string): RawJob[] {
     case 'json':
       return extractJson(body, portal.extraction as JsonExtraction);
     default:
-      throw new Error(`unknown strategy: ${portal.strategy as string}`);
+      throw new Error(`unknown strategy: ${String(portal.strategy)}`);
   }
 }

@@ -1,18 +1,5 @@
-import * as cheerio from 'cheerio';
 import type { JsonExtraction, RawJob } from '../types.js';
-
-/**
- * Normalize a description field. Some JSON APIs (e.g. Greenhouse) return the
- * body as entity-encoded HTML, so we decode entities, strip tags and collapse
- * whitespace, then cap the length to keep the LLM prompt lean. Plain text passes
- * through unchanged.
- */
-function cleanDescription(value: unknown): string | undefined {
-  if (value == null) return undefined;
-  const decoded = cheerio.load(String(value)).text(); // entities → real HTML/text
-  const text = cheerio.load(decoded).text().replace(/\s+/g, ' ').trim(); // strip tags
-  return text ? text.slice(0, 4000) : undefined;
-}
+import { htmlToText } from '../util/html.js';
 
 /** Read a dot-path from an object; empty path returns the value itself. */
 function getPath(obj: unknown, path: string): unknown {
@@ -43,7 +30,7 @@ export function extractJson(body: string, extraction: JsonExtraction): RawJob[] 
     jobs.push({
       title,
       url,
-      description: cleanDescription(getPath(item, extraction.fields.description ?? '')),
+      description: htmlToText(getPath(item, extraction.fields.description ?? '')),
       company: asString(getPath(item, extraction.fields.company ?? '')),
       location: asString(getPath(item, extraction.fields.location ?? '')),
     });

@@ -7,7 +7,7 @@ export class HttpFetcher implements Fetcher {
     const res = await fetch(req.url, {
       method: req.method ?? 'GET',
       headers: {
-        'user-agent': 'hugin-jobs/0.1 (+https://github.com/matteominin/hugin-jobs)',
+        'user-agent': 'hugin-jobs/0.1',
         ...req.headers,
       },
       body: req.body,
