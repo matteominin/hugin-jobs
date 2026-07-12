@@ -1,22 +1,20 @@
-import type { Portal, RawJob } from '../types.js';
+import type { Portal } from '../types.js';
 import { AmazonSource } from './amazon.js';
+import type { Source } from './base.js';
 import { BoltSource } from './bolt.js';
-import { ConfigSource } from './config.js';
 import { MicrosoftSource } from './microsoft.js';
 import { SpotifySource } from './spotify.js';
 import { StripeSource } from './stripe.js';
 import { UberSource } from './uber.js';
 
-/**
- * A Source produces the list of jobs for a portal, however it likes — a single
- * fetch + parse (ConfigSource), or a bespoke multi-step flow (a code Source).
- * The JobRunner then dedups, judges and notifies on whatever it returns.
- */
-export interface Source {
-  produce(): Promise<RawJob[]>;
-}
+export type { Source } from './base.js';
+export { BaseSource } from './base.js';
 
-/** Named code sources for portals that config can't express. */
+/**
+ * Registry of code sources, keyed by the portal's `source` field. To add a
+ * portal for a new job poster: write a `BaseSource` subclass in this folder,
+ * add it here, then insert a portal document with that key (see src/seed.ts).
+ */
 const registry: Record<string, (portal: Portal) => Source> = {
   amazon: (portal) => new AmazonSource(portal),
   spotify: (portal) => new SpotifySource(portal),
@@ -26,12 +24,11 @@ const registry: Record<string, (portal: Portal) => Source> = {
   microsoft: (portal) => new MicrosoftSource(portal),
 };
 
-/** Resolve the Source for a portal: a named code source, else the config source. */
+/** Resolve the code source for a portal by its `source` key. */
 export function getSource(portal: Portal): Source {
-  if (portal.source) {
-    const factory = registry[portal.source];
-    if (!factory) throw new Error(`unknown source: ${portal.source}`);
-    return factory(portal);
+  const factory = registry[portal.source];
+  if (!factory) {
+    throw new Error(`unknown source "${portal.source}" for portal "${portal.name}"`);
   }
-  return new ConfigSource(portal);
+  return factory(portal);
 }

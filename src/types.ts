@@ -1,68 +1,23 @@
 import { ObjectId } from 'mongodb';
 
-/** How the raw content is retrieved. */
-export type Transport = 'http' | 'playwright';
-
-/** How jobs are parsed out of the raw content. */
-export type Strategy = 'css' | 'json';
-
-export interface RequestConfig {
-  url: string;
-  method?: string;
-  headers?: Record<string, string>;
-  body?: string;
-  /** playwright-only: wait for this CSS selector before reading the page */
-  waitForSelector?: string;
-}
-
-export interface CssExtraction {
-  listSelector: string;
-  baseUrl?: string;
-  fields: {
-    title: string;
-    /** selector, optionally with `@attr` suffix (default: href for links, text otherwise) */
-    url: string;
-    description?: string;
-    company?: string;
-    location?: string;
-  };
-}
-
-export interface JsonExtraction {
-  /** dot-path to the array of jobs, e.g. "data.jobs" ("" = root array) */
-  jobsPath: string;
-  fields: {
-    title: string;
-    url: string;
-    description?: string;
-    company?: string;
-    location?: string;
-  };
-}
-
-export type Extraction = CssExtraction | JsonExtraction;
-
+/**
+ * A portal is a job poster to watch. Fetching is done entirely by a code source
+ * (see src/sources/); the document only names the source and holds the per-portal
+ * knobs: how often to run, an optional prompt override, and options for the source.
+ */
 export interface Portal {
   _id?: ObjectId;
   name: string;
   enabled: boolean;
+  /** how often to re-fetch this portal, in seconds */
   intervalSeconds: number;
-  /**
-   * Named code source (see src/sources/). When set, this portal is produced by
-   * that Source class and the config fields below are ignored. When omitted, the
-   * default config-driven source is used and request/transport/strategy are required.
-   */
-  source?: string;
-  /** free-form options passed to a code Source (e.g. { seniorities: [...] }) */
+  /** key of the code source that produces this portal's jobs (see getSource) */
+  source: string;
+  /** free-form options passed to the code source (e.g. { seniorities: [...] }) */
   sourceOptions?: Record<string, unknown>;
-  request?: RequestConfig;
-  /** transport used to fetch the raw content (default: http) */
-  transport?: Transport;
-  strategy?: Strategy;
-  extraction?: Extraction;
   /** default company for this portal; used when the LLM can't extract one */
   company?: string;
-  /** extra matching criteria appended to the global prompt */
+  /** extra matching criteria appended to the global prompt, specific to this poster */
   promptOverride?: string;
   lastRunAt?: Date;
   /** consecutive fetch failures; the portal is auto-disabled once it hits the cap */

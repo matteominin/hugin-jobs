@@ -1,22 +1,13 @@
 import { jobs as jobsCol } from '../db.js';
-import { HttpFetcher } from '../fetchers/http.js';
-import type { Portal, RawJob } from '../types.js';
+import type { RawJob } from '../types.js';
+import { isEuropeAlpha2 } from '../util/europe.js';
 import { htmlToText } from '../util/html.js';
-import type { Source } from './index.js';
+import { BaseSource } from './base.js';
 
 const SEARCH_URL = 'https://apply.careers.microsoft.com/api/pcsx/search';
 const BASE = 'https://apply.careers.microsoft.com';
-const BROWSER_UA =
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36';
 const DEFAULT_SENIORITIES = ['Intern'];
 const MAX_JOBS = 500; // safety bound on the newest-first crawl
-// Europe (EU/EEA/UK/CH) as ISO-3166 alpha-2 — the trailing token of each
-// standardizedLocations entry, e.g. "Dublin, D, IE" → "IE".
-const EUROPE = new Set([
-  'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU',
-  'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES',
-  'SE', 'GB', 'CH', 'NO', 'IS', 'LI',
-]);
 
 interface MsPosition {
   id: number;
@@ -39,14 +30,9 @@ interface MsResponse {
  * stop early instead of re-scanning the whole intern list. The list carries no
  * description, so we pass the department to the LLM as the role signal.
  */
-export class MicrosoftSource implements Source {
-  private readonly http = new HttpFetcher();
-
-  constructor(private readonly portal: Portal) {}
-
+export class MicrosoftSource extends BaseSource {
   async produce(): Promise<RawJob[]> {
-    const seniorities =
-      (this.portal.sourceOptions?.seniorities as string[] | undefined) ?? DEFAULT_SENIORITIES;
+    const seniorities = this.option<string[]>('seniorities', DEFAULT_SENIORITIES);
 
     // URLs already stored for this portal — hitting one means every older job
     // (timestamp-sorted) is already processed, so we can stop paging.
@@ -96,7 +82,7 @@ export class MicrosoftSource implements Source {
   private inEurope(p: MsPosition): boolean {
     const std = p.standardizedLocations ?? [];
     if (std.length === 0) return true; // no location data — let the LLM decide
-    return std.some((s) => EUROPE.has(s.split(',').pop()!.trim().toUpperCase()));
+    return std.some((s) => isEuropeAlpha2(s.split(',').pop()));
   }
 
   private async search(
@@ -111,12 +97,11 @@ export class MicrosoftSource implements Source {
     params.set('sort_by', 'timestamp');
     for (const s of seniorities) params.append('filter_seniority', s);
 
-    const body = await this.http.fetch({
-      url: `${SEARCH_URL}?${params.toString()}`,
-      method: 'GET',
-      headers: { accept: 'application/json', 'user-agent': BROWSER_UA },
-    });
-    const data = (JSON.parse(body) as MsResponse).data;
+    const data = (
+      await this.fetchJson<MsResponse>(`${SEARCH_URL}?${params.toString()}`, {
+        headers: { accept: 'application/json' },
+      })
+    ).data;
     return { positions: data?.positions ?? [], count: data?.count ?? 0 };
   }
 }

@@ -1,20 +1,11 @@
-import { HttpFetcher } from '../fetchers/http.js';
-import type { Portal, RawJob } from '../types.js';
+import type { RawJob } from '../types.js';
+import { isEuropeAlpha2 } from '../util/europe.js';
 import { htmlToText } from '../util/html.js';
-import type { Source } from './index.js';
+import { BaseSource } from './base.js';
 
 const LIST_URL = 'https://bolt.eu/en/careers/positions/';
 const BASE = 'https://bolt.eu';
-const BROWSER_UA =
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36';
 const INTERN_TITLE = /\bintern(ship)?\b|\btrainee\b|\bgraduate\b|working.?student|\bthesis\b|\bpraktik/i;
-// Europe (EU/EEA/UK/CH) as ISO-3166 alpha-2 — Bolt also hires in Africa, so we
-// keep only roles with at least one European location.
-const EUROPE = new Set([
-  'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU',
-  'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES',
-  'SE', 'GB', 'CH', 'NO', 'IS', 'LI',
-]);
 // Each position is embedded in the page's Next.js RSC payload as escaped JSON.
 // Capture: 1 roleTitle, 2 parentTeamTitle, 3 locations[], 4 description, 5 href.
 const POSITION_RE =
@@ -35,19 +26,9 @@ interface BoltLocation {
  * Best-effort scraper: the RSC shape can change, in which case the regex yields
  * nothing rather than throwing.
  */
-export class BoltSource implements Source {
-  private readonly http = new HttpFetcher();
-
-  constructor(private readonly portal: Portal) {}
-
+export class BoltSource extends BaseSource {
   async produce(): Promise<RawJob[]> {
-    const html = (
-      await this.http.fetch({
-        url: LIST_URL,
-        method: 'GET',
-        headers: { 'user-agent': BROWSER_UA },
-      })
-    )
+    const html = (await this.fetchText(LIST_URL))
       // collapse the RSC string escaping to real JSON punctuation
       .replace(/\\u0026/g, '&')
       .replace(/\\"/g, '"')
@@ -64,12 +45,7 @@ export class BoltSource implements Source {
       } catch {
         /* keep the role even if the location blob is malformed */
       }
-      if (
-        locations.length &&
-        !locations.some((l) => EUROPE.has((l.countryCode ?? '').toUpperCase()))
-      ) {
-        continue;
-      }
+      if (locations.length && !locations.some((l) => isEuropeAlpha2(l.countryCode))) continue;
 
       jobs.push({
         title,

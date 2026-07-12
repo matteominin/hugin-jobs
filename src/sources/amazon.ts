@@ -1,19 +1,11 @@
-import { HttpFetcher } from '../fetchers/http.js';
-import type { Portal, RawJob } from '../types.js';
+import type { RawJob } from '../types.js';
+import { EUROPE_ALPHA3 } from '../util/europe.js';
 import { htmlToText } from '../util/html.js';
-import type { Source } from './index.js';
+import { BaseSource } from './base.js';
 
 const SEARCH_URL = 'https://www.amazon.jobs/en/search.json';
-const BROWSER_UA =
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36';
 const DEFAULT_QUERY = 'intern';
 const INTERN_TITLE = /intern|internship|praktikum|werkstudent/i;
-// Europe (EU/EEA/UK/CH) as ISO-3166 alpha-3, the format amazon.jobs expects.
-const DEFAULT_COUNTRIES = [
-  'DEU', 'GBR', 'IRL', 'FRA', 'ESP', 'ITA', 'NLD', 'LUX', 'POL', 'SWE', 'PRT',
-  'AUT', 'CZE', 'ROU', 'BEL', 'FIN', 'EST', 'DNK', 'CHE', 'GRC', 'HUN', 'SVK',
-  'SVN', 'LTU', 'LVA', 'HRV', 'BGR', 'NOR',
-];
 
 interface AmazonJob {
   title: string;
@@ -32,15 +24,10 @@ interface AmazonJob {
  * check (the `is_intern` field is unreliable) and to Europe via country codes.
  * The LLM judge then applies the software/research + education rules.
  */
-export class AmazonSource implements Source {
-  private readonly http = new HttpFetcher();
-
-  constructor(private readonly portal: Portal) {}
-
+export class AmazonSource extends BaseSource {
   async produce(): Promise<RawJob[]> {
-    const opts = this.portal.sourceOptions ?? {};
-    const query = (opts.query as string | undefined) ?? DEFAULT_QUERY;
-    const countries = (opts.countries as string[] | undefined) ?? DEFAULT_COUNTRIES;
+    const query = this.option<string>('query', DEFAULT_QUERY);
+    const countries = this.option<string[]>('countries', EUROPE_ALPHA3);
 
     const limit = 100;
     const raw: AmazonJob[] = [];
@@ -79,11 +66,8 @@ export class AmazonSource implements Source {
     params.set('offset', String(offset));
     for (const c of countries) params.append('normalized_country_code[]', c);
 
-    const body = await this.http.fetch({
-      url: `${SEARCH_URL}?${params.toString()}`,
-      method: 'GET',
-      headers: { 'user-agent': BROWSER_UA },
-    });
-    return JSON.parse(body);
+    return this.fetchJson<{ hits?: number; jobs?: AmazonJob[] }>(
+      `${SEARCH_URL}?${params.toString()}`,
+    );
   }
 }

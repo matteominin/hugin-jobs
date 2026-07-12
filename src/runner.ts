@@ -28,7 +28,7 @@ export class JobRunner {
     const { portal } = this;
     const portalId = portal._id!;
     const tag = `[${portal.name}]`;
-    console.log(`${tag} run start (source=${portal.source ?? `config:${portal.strategy}`})`);
+    console.log(`${tag} run start (source=${portal.source})`);
 
     // Fetch + persist may fail (network, source change); judging still runs
     // afterwards so any record left unchecked by a previous stopped run — or new
