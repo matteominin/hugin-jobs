@@ -44,6 +44,8 @@ export interface Portal {
   request: RequestConfig;
   strategy: Strategy;
   extraction: Extraction;
+  /** default company for this portal; used when the LLM can't extract one */
+  company?: string;
   /** extra matching criteria appended to the global prompt */
   promptOverride?: string;
   lastRunAt?: Date;
@@ -65,11 +67,26 @@ export interface MatchVerdict {
   model: string;
 }
 
+export type WorkMode = 'remote' | 'hybrid' | 'onsite' | 'unknown';
+
+/** Metadata the LLM extracts from a job listing (null when not stated). */
+export interface Enrichment {
+  /** role tags, e.g. ["full stack", "software engineer"] */
+  tags: string[];
+  location: string | null;
+  company: string | null;
+  seniority: string | null;
+  workMode: WorkMode;
+  techStack: string[];
+  salary: string | null;
+}
+
 export interface Job extends RawJob {
   _id?: ObjectId;
   portalId: ObjectId;
   hash: string;
   match?: MatchVerdict;
+  enrichment?: Enrichment;
   notified: boolean;
   createdAt: Date;
 }

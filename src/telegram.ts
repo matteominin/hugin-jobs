@@ -8,11 +8,23 @@ export async function notify(job: Job): Promise<void> {
     return;
   }
 
+  const e = job.enrichment;
+  const company = e?.company ?? job.company;
+  const location = e?.location ?? job.location;
+  const meta = [
+    e?.seniority,
+    e?.workMode && e.workMode !== 'unknown' ? e.workMode : undefined,
+    e?.salary,
+  ].filter(Boolean);
+
   const text = [
     `🟢 <b>Job match</b> (${Math.round((job.match?.score ?? 0) * 100)}%)`,
     `<b>${escapeHtml(job.title)}</b>`,
-    job.company && escapeHtml(job.company),
-    job.location && `📍 ${escapeHtml(job.location)}`,
+    company && escapeHtml(company),
+    location && `📍 ${escapeHtml(location)}`,
+    meta.length > 0 && meta.map((m) => escapeHtml(m!)).join(' · '),
+    e?.techStack?.length && `🛠 ${e.techStack.map(escapeHtml).join(', ')}`,
+    e?.tags?.length && `🏷 ${e.tags.map(escapeHtml).join(', ')}`,
     job.match?.reasoning && `\n${escapeHtml(job.match.reasoning)}`,
     `\n${job.url}`,
   ]

@@ -44,14 +44,14 @@ export async function runPortal(portal: Portal): Promise<void> {
   const settings = await loadSettings();
   const pending = await jobsCol().find({ portalId, match: { $exists: false } }).toArray();
   for (const job of pending) {
-    const verdict = await judge(job, settings, portal.promptOverride);
-    await jobsCol().updateOne({ _id: job._id }, { $set: { match: verdict } });
+    const { match, enrichment } = await judge(job, settings, portal);
+    await jobsCol().updateOne({ _id: job._id }, { $set: { match, enrichment } });
     console.log(
-      `${tag} judged "${job.title}" → suitable=${verdict.suitable} score=${verdict.score.toFixed(2)}`,
+      `${tag} judged "${job.title}" → suitable=${match.suitable} score=${match.score.toFixed(2)} tags=[${enrichment.tags.join(', ')}]`,
     );
 
-    if (verdict.suitable) {
-      await notify({ ...job, match: verdict });
+    if (match.suitable) {
+      await notify({ ...job, match, enrichment });
       await jobsCol().updateOne({ _id: job._id }, { $set: { notified: true } });
     }
   }
