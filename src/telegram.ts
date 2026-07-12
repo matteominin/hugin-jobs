@@ -11,9 +11,9 @@ export async function notify(job: Job): Promise<void> {
   const company = job.enrichment?.company ?? job.company;
   const location = job.enrichment?.location ?? job.location;
 
+  const title = `<b>${escapeHtml(job.title)}</b>`;
   const text = [
-    company && escapeHtml(company),
-    `<b>${escapeHtml(job.title)}</b>`,
+    company ? `${escapeHtml(company)} · ${title}` : title,
     location && `📍 ${escapeHtml(location)}`,
     job.url,
   ]
