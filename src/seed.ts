@@ -21,19 +21,27 @@ const settings: Settings = {
     'Not interested in non-technical roles (sales, marketing, HR, etc.).',
 };
 
+// Celonis (Munich-based) publishes on Greenhouse, whose JSON API returns full
+// description + location — so the Europe/internship/education filters can work.
+// Also exercises the `json` strategy end-to-end.
 const samplePortal: Portal = {
-  name: 'Hacker News Jobs',
+  name: 'Celonis (Greenhouse)',
   enabled: true,
-  intervalSeconds: 300,
-  request: { url: 'https://news.ycombinator.com/jobs', method: 'GET' },
+  intervalSeconds: 3600,
+  request: {
+    url: 'https://boards-api.greenhouse.io/v1/boards/celonis/jobs?content=true',
+    method: 'GET',
+  },
   transport: 'http',
-  strategy: 'css',
+  strategy: 'json',
   extraction: {
-    listSelector: '.athing',
-    baseUrl: 'https://news.ycombinator.com/',
+    jobsPath: 'jobs',
     fields: {
-      title: '.titleline a',
-      url: '.titleline a@href',
+      title: 'title',
+      url: 'absolute_url',
+      description: 'content',
+      company: 'company_name',
+      location: 'location.name',
     },
   },
 };
