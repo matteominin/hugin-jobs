@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { config } from './config.js';
 import { jobs as jobsCol, portals as portalsCol, settings as settingsCol } from './db.js';
 import { judge } from './llm/judge.js';
 import type { Source } from './sources/index.js';
@@ -54,31 +55,55 @@ export class JobRunner {
     return newCount;
   }
 
-  /** Judge every stored job without a verdict yet (new ones + past failures). */
+  /**
+   * Judge every stored job without a verdict yet (new ones + past failures).
+   * The LLM calls are the slow part, so we run them in concurrent batches of
+   * `config.judgeConcurrency`. Failures are isolated per job (the job stays
+   * pending and is retried next cycle) so one bad call can't sink the batch.
+   */
   private async judgePending(portalId: Job['portalId']): Promise<void> {
     const settings = await this.loadSettings();
     const tag = `[${this.portal.name}]`;
     const pending = await jobsCol().find({ portalId, match: { $exists: false } }).toArray();
+    if (pending.length === 0) return;
 
     let tokensIn = 0;
     let tokensOut = 0;
-    for (const job of pending) {
-      const { match, enrichment, usage } = await judge(job, settings, this.portal);
-      await jobsCol().updateOne({ _id: job._id }, { $set: { match, enrichment, usage } });
-      tokensIn += usage.inputTokens;
-      tokensOut += usage.outputTokens;
-      console.log(
-        `${tag} judged "${job.title}" → suitable=${match.suitable} score=${match.score.toFixed(2)} tags=[${enrichment.tags.join(', ')}] tokens=${usage.inputTokens}/${usage.outputTokens}`,
+    let judged = 0;
+    for (let i = 0; i < pending.length; i += config.judgeConcurrency) {
+      const batch = pending.slice(i, i + config.judgeConcurrency);
+      const settled = await Promise.allSettled(
+        batch.map((job) => judge(job, settings, this.portal)),
       );
 
-      if (match.suitable) {
-        await notify({ ...job, match, enrichment });
-        await jobsCol().updateOne({ _id: job._id }, { $set: { notified: true } });
+      // persist + notify sequentially to keep DB writes and Telegram order tidy
+      for (let k = 0; k < batch.length; k++) {
+        const job = batch[k];
+        const result = settled[k];
+        if (result.status === 'rejected') {
+          console.error(`${tag} judge failed for "${job.title}" (will retry): ${result.reason}`);
+          continue;
+        }
+
+        const { match, enrichment, usage } = result.value;
+        await jobsCol().updateOne({ _id: job._id }, { $set: { match, enrichment, usage } });
+        tokensIn += usage.inputTokens;
+        tokensOut += usage.outputTokens;
+        judged++;
+        console.log(
+          `${tag} judged "${job.title}" → suitable=${match.suitable} score=${match.score.toFixed(2)} tags=[${enrichment.tags.join(', ')}] tokens=${usage.inputTokens}/${usage.outputTokens}`,
+        );
+
+        if (match.suitable) {
+          await notify({ ...job, match, enrichment });
+          await jobsCol().updateOne({ _id: job._id }, { $set: { notified: true } });
+        }
       }
     }
-    if (pending.length > 0) {
-      console.log(`${tag} judged ${pending.length} job(s), tokens in/out: ${tokensIn}/${tokensOut}`);
-    }
+
+    console.log(
+      `${tag} judged ${judged}/${pending.length} job(s), tokens in/out: ${tokensIn}/${tokensOut}`,
+    );
   }
 
   private async loadSettings(): Promise<Settings> {
