@@ -62,6 +62,14 @@ const portalsSeed: Portal[] = [
     intervalSeconds: 60 * 20,
     source: 'stripe',
   },
+  {
+    // Microsoft pcsx search (filter_seniority=Intern, newest-first), Europe by
+    // country code, paged until an already-seen job. See src/sources/microsoft.ts.
+    name: 'Microsoft (EU interns)',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'microsoft',
+  },
 ];
 
 async function main(): Promise<void> {

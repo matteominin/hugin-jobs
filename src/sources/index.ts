@@ -2,6 +2,7 @@ import type { Portal, RawJob } from '../types.js';
 import { AmazonSource } from './amazon.js';
 import { BoltSource } from './bolt.js';
 import { ConfigSource } from './config.js';
+import { MicrosoftSource } from './microsoft.js';
 import { SpotifySource } from './spotify.js';
 import { StripeSource } from './stripe.js';
 import { UberSource } from './uber.js';
@@ -22,6 +23,7 @@ const registry: Record<string, (portal: Portal) => Source> = {
   uber: (portal) => new UberSource(portal),
   bolt: (portal) => new BoltSource(portal),
   stripe: (portal) => new StripeSource(portal),
+  microsoft: (portal) => new MicrosoftSource(portal),
 };
 
 /** Resolve the Source for a portal: a named code source, else the config source. */
