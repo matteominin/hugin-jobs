@@ -27,11 +27,21 @@ export class JobRunner {
     const tag = `[${portal.name}]`;
     console.log(`${tag} run start (source=${portal.source ?? `config:${portal.strategy}`})`);
 
-    const extracted = await this.source.produce();
-    console.log(`${tag} produced ${extracted.length} jobs`);
+    // Fetch + persist may fail (network, source change); judging still runs
+    // afterwards so any record left unchecked by a previous stopped run — or new
+    // ones from this run — is (re)judged. Judging selects jobs with no verdict.
+    try {
+      const extracted = await this.source.produce();
+      console.log(`${tag} produced ${extracted.length} jobs`);
 
-    const newCount = await this.persistNew(portalId, extracted);
-    console.log(`${tag} ${newCount} new job(s), ${extracted.length - newCount} already seen`);
+      const newCount = await this.persistNew(portalId, extracted);
+      console.log(`${tag} ${newCount} new job(s), ${extracted.length - newCount} already seen`);
+    } catch (err) {
+      console.error(
+        `${tag} produce/persist failed, judging already-stored jobs anyway:`,
+        err instanceof Error ? err.message : err,
+      );
+    }
 
     await this.judgePending(portalId);
 
