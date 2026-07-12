@@ -26,8 +26,26 @@ MongoDB is expected on `mongodb://localhost:27018` (local docker instance).
 
 ## Configuration
 
-Each portal config supports three extraction strategies:
+A portal config picks a **transport** (how to fetch) and a **strategy** (how to parse), independently.
+
+**Transport** — a `Fetcher` injected into the `JobRunner` (composition):
+
+- **http** — the built-in HTTP client (`HttpFetcher`). Default.
+- **playwright** — headless-browser rendering for JS-heavy pages (`PlaywrightFetcher`).
+
+**Strategy** — extraction from the fetched content:
 
 - **css** — `cheerio` selectors: `{ listSelector, baseUrl?, fields: { title, url, description?, ... } }`
 - **json** — dot-paths into a JSON response: `{ jobsPath, fields: { title, url, ... } }`
-- **llm** — hands page text to the LLM to return a job array.
+
+The LLM is used only to **judge** each job and extract enrichment (tags, location, company, seniority, work mode, tech stack, salary) — not for extraction.
+
+### Playwright (optional)
+
+Playwright is an optional peer dependency, loaded lazily — projects that don't need it install nothing. To use the `playwright` transport:
+
+```bash
+npm i playwright && npx playwright install chromium
+```
+
+Add a new transport by implementing the `Fetcher` interface (`src/fetchers/`) and registering it in `getFetcher()`.

@@ -16,6 +16,7 @@ const samplePortal: Portal = {
   enabled: true,
   intervalSeconds: 300,
   request: { url: 'https://news.ycombinator.com/jobs', method: 'GET' },
+  transport: 'http',
   strategy: 'css',
   extraction: {
     listSelector: '.athing',

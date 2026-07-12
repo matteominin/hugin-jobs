@@ -1,12 +1,18 @@
 import { ObjectId } from 'mongodb';
 
-export type Strategy = 'css' | 'json' | 'llm';
+/** How the raw content is retrieved. */
+export type Transport = 'http' | 'playwright';
+
+/** How jobs are parsed out of the raw content. */
+export type Strategy = 'css' | 'json';
 
 export interface RequestConfig {
   url: string;
   method?: string;
   headers?: Record<string, string>;
   body?: string;
+  /** playwright-only: wait for this CSS selector before reading the page */
+  waitForSelector?: string;
 }
 
 export interface CssExtraction {
@@ -34,7 +40,7 @@ export interface JsonExtraction {
   };
 }
 
-export type Extraction = CssExtraction | JsonExtraction | Record<string, never>;
+export type Extraction = CssExtraction | JsonExtraction;
 
 export interface Portal {
   _id?: ObjectId;
@@ -42,6 +48,8 @@ export interface Portal {
   enabled: boolean;
   intervalSeconds: number;
   request: RequestConfig;
+  /** transport used to fetch the raw content (default: http) */
+  transport: Transport;
   strategy: Strategy;
   extraction: Extraction;
   /** default company for this portal; used when the LLM can't extract one */

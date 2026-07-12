@@ -1,5 +1,6 @@
 import { portals as portalsCol } from './db.js';
-import { runPortal } from './pipeline.js';
+import { getFetcher } from './fetchers/index.js';
+import { JobRunner } from './runner.js';
 import type { Portal } from './types.js';
 
 let stopped = false;
@@ -11,10 +12,11 @@ const timers = new Set<NodeJS.Timeout>();
  * portal failing never stops the others.
  */
 function schedulePortal(portal: Portal): void {
+  const runner = new JobRunner(portal, getFetcher(portal.transport));
   const loop = async () => {
     if (stopped) return;
     try {
-      await runPortal(portal);
+      await runner.run();
     } catch (err) {
       console.error(`[${portal.name}] run failed:`, err instanceof Error ? err.message : err);
     }
