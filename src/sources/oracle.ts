@@ -51,12 +51,15 @@ export class OracleSource implements Source {
     const keyword =
       (this.portal.sourceOptions?.keyword as string | undefined) ?? DEFAULT_KEYWORD;
 
-    const raw: OracleReq[] = [];
-    for (let offset = 0; offset < MAX_JOBS; offset += PAGE_SIZE) {
-      const { list, total } = await this.search(keyword, offset);
-      raw.push(...list);
-      if (list.length < PAGE_SIZE || offset + PAGE_SIZE >= total) break;
-    }
+    // The first page reveals the total; fetch the remaining pages concurrently
+    // (each page is ~400KB, so serial paging would take ~30s for ~1800 jobs).
+    const first = await this.search(keyword, 0);
+    const total = Math.min(first.total, MAX_JOBS);
+    const offsets: number[] = [];
+    for (let offset = PAGE_SIZE; offset < total; offset += PAGE_SIZE) offsets.push(offset);
+    const rest = await Promise.all(offsets.map((offset) => this.search(keyword, offset)));
+
+    const raw: OracleReq[] = [first, ...rest].flatMap((page) => page.list);
 
     const inEurope = (j: OracleReq): boolean =>
       EUROPE.has((j.PrimaryLocationCountry ?? '').toUpperCase()) ||
