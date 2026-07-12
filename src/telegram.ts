@@ -8,25 +8,14 @@ export async function notify(job: Job): Promise<void> {
     return;
   }
 
-  const e = job.enrichment;
-  const company = e?.company ?? job.company;
-  const location = e?.location ?? job.location;
-  const meta = [
-    e?.seniority,
-    e?.workMode && e.workMode !== 'unknown' ? e.workMode : undefined,
-    e?.salary,
-  ].filter(Boolean);
+  const company = job.enrichment?.company ?? job.company;
+  const location = job.enrichment?.location ?? job.location;
 
   const text = [
-    `🟢 <b>Job match</b> (${Math.round((job.match?.score ?? 0) * 100)}%)`,
-    `<b>${escapeHtml(job.title)}</b>`,
     company && escapeHtml(company),
+    `<b>${escapeHtml(job.title)}</b>`,
     location && `📍 ${escapeHtml(location)}`,
-    meta.length > 0 && meta.map((m) => escapeHtml(m!)).join(' · '),
-    e?.techStack?.length && `🛠 ${e.techStack.map(escapeHtml).join(', ')}`,
-    e?.tags?.length && `🏷 ${e.tags.map(escapeHtml).join(', ')}`,
-    job.match?.reasoning && `\n${escapeHtml(job.match.reasoning)}`,
-    `\n${job.url}`,
+    job.url,
   ]
     .filter(Boolean)
     .join('\n');
@@ -40,7 +29,7 @@ export async function notify(job: Job): Promise<void> {
         chat_id: chatId,
         text,
         parse_mode: 'HTML',
-        disable_web_page_preview: false,
+        disable_web_page_preview: true,
       }),
     });
     if (!res.ok) {
