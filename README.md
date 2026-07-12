@@ -24,7 +24,7 @@ MongoDB is expected on `mongodb://localhost:27018` (local docker instance).
 
 - `settings` — single doc with the `globalPrompt` and `positionDescription` to match against.
 - `portals` — one doc per job portal (request, extraction strategy/config, optional prompt override).
-- `jobs` — extracted jobs, deduped per portal, with the LLM match verdict and notification state.
+- `jobs` — extracted jobs, deduped per portal, with the LLM match verdict, enrichment, per-job LLM token usage (`usage.inputTokens` / `outputTokens` / `totalTokens`) and notification state.
 
 ## Configuration
 

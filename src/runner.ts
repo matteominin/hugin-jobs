@@ -60,17 +60,24 @@ export class JobRunner {
     const tag = `[${this.portal.name}]`;
     const pending = await jobsCol().find({ portalId, match: { $exists: false } }).toArray();
 
+    let tokensIn = 0;
+    let tokensOut = 0;
     for (const job of pending) {
-      const { match, enrichment } = await judge(job, settings, this.portal);
-      await jobsCol().updateOne({ _id: job._id }, { $set: { match, enrichment } });
+      const { match, enrichment, usage } = await judge(job, settings, this.portal);
+      await jobsCol().updateOne({ _id: job._id }, { $set: { match, enrichment, usage } });
+      tokensIn += usage.inputTokens;
+      tokensOut += usage.outputTokens;
       console.log(
-        `${tag} judged "${job.title}" → suitable=${match.suitable} score=${match.score.toFixed(2)} tags=[${enrichment.tags.join(', ')}]`,
+        `${tag} judged "${job.title}" → suitable=${match.suitable} score=${match.score.toFixed(2)} tags=[${enrichment.tags.join(', ')}] tokens=${usage.inputTokens}/${usage.outputTokens}`,
       );
 
       if (match.suitable) {
         await notify({ ...job, match, enrichment });
         await jobsCol().updateOne({ _id: job._id }, { $set: { notified: true } });
       }
+    }
+    if (pending.length > 0) {
+      console.log(`${tag} judged ${pending.length} job(s), tokens in/out: ${tokensIn}/${tokensOut}`);
     }
   }
 

@@ -1,6 +1,6 @@
 import { generateObject } from 'ai';
 import { z } from 'zod';
-import type { Enrichment, MatchVerdict, Portal, RawJob, Settings } from '../types.js';
+import type { Enrichment, MatchVerdict, Portal, RawJob, Settings, TokenUsage } from '../types.js';
 import { assertLlmConfigured, model, modelId } from './model.js';
 
 const resultSchema = z.object({
@@ -34,6 +34,7 @@ const resultSchema = z.object({
 export interface JudgeResult {
   match: MatchVerdict;
   enrichment: Enrichment;
+  usage: TokenUsage;
 }
 
 /** Judge a single job against the described position and extract its metadata. */
@@ -60,7 +61,7 @@ export async function judge(
     .filter(Boolean)
     .join('\n');
 
-  const { object } = await generateObject({
+  const { object, usage } = await generateObject({
     model,
     schema: resultSchema,
     system: settings.globalPrompt,
@@ -68,6 +69,11 @@ export async function judge(
   });
 
   return {
+    usage: {
+      inputTokens: usage.inputTokens ?? 0,
+      outputTokens: usage.outputTokens ?? 0,
+      totalTokens: usage.totalTokens ?? 0,
+    },
     match: {
       suitable: object.suitable,
       score: object.score,

@@ -83,6 +83,13 @@ export interface MatchVerdict {
   model: string;
 }
 
+/** LLM token usage for the judge call, stored per job for observability. */
+export interface TokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+}
+
 export type WorkMode = 'remote' | 'hybrid' | 'onsite' | 'unknown';
 
 /** Metadata the LLM extracts from a job listing (null when not stated). */
@@ -103,6 +110,8 @@ export interface Job extends RawJob {
   hash: string;
   match?: MatchVerdict;
   enrichment?: Enrichment;
+  /** token usage of the judge call that produced `match` */
+  usage?: TokenUsage;
   notified: boolean;
   createdAt: Date;
 }
