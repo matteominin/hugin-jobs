@@ -5,7 +5,7 @@ A long-running service that, per portal config, periodically fetches a job-listi
 ## How it works
 
 1. A scheduler loads enabled **portal** configs from MongoDB and runs each on its own `intervalSeconds` loop.
-2. Each cycle: **fetch** the portal URL → **extract** jobs (`css` / `json` / `llm` strategy) → **dedup** against seen jobs → **judge** each new job with the LLM against the global position → **notify** Telegram subscribers on matches.
+2. Each cycle: **fetch** the portal URL (via the configured transport) → **extract** jobs (`css` / `json` strategy) → **dedup** against seen jobs → **judge** each new job with the LLM against the global position → **notify** Telegram subscribers on matches.
 
 ## Setup
 
@@ -49,3 +49,92 @@ npm i playwright && npx playwright install chromium
 ```
 
 Add a new transport by implementing the `Fetcher` interface (`src/fetchers/`) and registering it in `getFetcher()`.
+
+## Adding a portal
+
+**In almost all cases you add a portal via config only — no code.** A portal is just a
+document in the `portals` collection; `transport` and `strategy` are fields on that record.
+
+You only need to write code when you need a **new transport** (a way to *fetch* other than
+plain HTTP or Playwright — e.g. an OAuth API, a database, a queue): implement the `Fetcher`
+interface in `src/fetchers/` and register it in `getFetcher()`. Extraction is always config
+(`css`/`json`), never code.
+
+### Portal document
+
+```js
+{
+  name: "Portal name",            // unique; used for upsert
+  enabled: true,                  // scheduler only runs enabled portals
+  intervalSeconds: 3600,          // how often to re-fetch this portal
+  transport: "http",              // "http" | "playwright"
+  strategy: "json",               // "css"  | "json"
+  request: {
+    url: "https://…",
+    method: "GET",                // optional (default GET)
+    headers: { … },               // optional
+    body: "…",                    // optional
+    waitForSelector: ".job"       // optional, playwright-only: wait before reading
+  },
+  extraction: { /* depends on strategy, see below */ },
+  company: "Acme",                // optional: fallback company if the LLM can't extract one
+  promptOverride: "…"             // optional: extra criteria appended to the global prompt
+}
+```
+
+**`json` extraction** — dot-paths into the response (`location.name` reads nested fields;
+`jobsPath: ""` means the jobs array is at the root):
+
+```js
+extraction: {
+  jobsPath: "jobs",
+  fields: {
+    title: "title",
+    url: "absolute_url",
+    description: "content",       // entity-encoded HTML is auto-decoded & stripped
+    company: "company_name",
+    location: "location.name"
+  }
+}
+```
+
+**`css` extraction** — `cheerio` selectors. In `fields`, a `@attr` suffix reads an attribute
+(e.g. `a@href`); otherwise text content is used. `baseUrl` resolves relative links:
+
+```js
+extraction: {
+  listSelector: ".job-card",
+  baseUrl: "https://acme.com",
+  fields: {
+    title: ".job-title",
+    url: "a@href",
+    location: ".job-location",
+    description: ".job-desc"
+  }
+}
+```
+
+### Examples
+
+**Any Greenhouse-hosted company** (just change the board token in the URL):
+
+```js
+db.portals.insertOne({
+  name: "Personio (Greenhouse)", enabled: true, intervalSeconds: 3600,
+  transport: "http", strategy: "json",
+  request: { url: "https://boards-api.greenhouse.io/v1/boards/personio/jobs?content=true", method: "GET" },
+  extraction: { jobsPath: "jobs", fields: {
+    title: "title", url: "absolute_url", description: "content",
+    company: "company_name", location: "location.name" } }
+})
+```
+
+**A JS-rendered careers page** — same as a `css` portal but with `transport: "playwright"`
+(and optionally `request.waitForSelector` to wait for the jobs to appear).
+
+### How to insert a portal
+
+- **Directly with `mongosh`** on the `hugin_jobs` DB (as in the example above), or
+- add it to `src/seed.ts` and run `npm run seed` (upserts by `name`).
+
+New portals are picked up on the next scheduler start (`npm run dev`).
