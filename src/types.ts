@@ -65,6 +65,8 @@ export interface Portal {
   /** extra matching criteria appended to the global prompt */
   promptOverride?: string;
   lastRunAt?: Date;
+  /** consecutive fetch failures; the portal is auto-disabled once it hits the cap */
+  failureCount?: number;
 }
 
 /** A job as extracted from a portal, before persistence. */

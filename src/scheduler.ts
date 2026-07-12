@@ -20,7 +20,8 @@ function schedulePortal(portal: Portal): void {
     } catch (err) {
       console.error(`[${portal.name}] run failed:`, err instanceof Error ? err.message : err);
     }
-    if (stopped) return;
+    // stop rescheduling a portal that auto-disabled after repeated failures
+    if (stopped || runner.disabled) return;
     const timer = setTimeout(loop, portal.intervalSeconds * 1000);
     timers.add(timer);
   };

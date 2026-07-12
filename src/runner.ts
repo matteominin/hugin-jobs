@@ -3,7 +3,7 @@ import { config } from './config.js';
 import { jobs as jobsCol, portals as portalsCol, settings as settingsCol } from './db.js';
 import { judge } from './llm/judge.js';
 import type { Source } from './sources/index.js';
-import { notify } from './telegram.js';
+import { notify, notifyPortalDisabled } from './telegram.js';
 import type { Job, Portal, RawJob, Settings } from './types.js';
 
 function hashJob(portalId: string, job: RawJob): string {
@@ -16,6 +16,9 @@ function hashJob(portalId: string, job: RawJob): string {
  * agnostic to config-driven vs bespoke code sources.
  */
 export class JobRunner {
+  /** set once the portal is auto-disabled, so the scheduler stops its loop */
+  disabled = false;
+
   constructor(
     private readonly portal: Portal,
     private readonly source: Source,
@@ -36,17 +39,51 @@ export class JobRunner {
 
       const newCount = await this.persistNew(portalId, extracted);
       console.log(`${tag} ${newCount} new job(s), ${extracted.length - newCount} already seen`);
+
+      await this.onFetchSuccess(portalId);
     } catch (err) {
       console.error(
         `${tag} produce/persist failed, judging already-stored jobs anyway:`,
         err instanceof Error ? err.message : err,
       );
+      await this.onFetchFailure(portalId, err);
     }
 
     await this.judgePending(portalId);
 
     await portalsCol().updateOne({ _id: portalId }, { $set: { lastRunAt: new Date() } });
     console.log(`${tag} run done`);
+  }
+
+  /** Clear the consecutive-failure counter after a good fetch. */
+  private async onFetchSuccess(portalId: Job['portalId']): Promise<void> {
+    if ((this.portal.failureCount ?? 0) === 0) return;
+    this.portal.failureCount = 0;
+    await portalsCol().updateOne({ _id: portalId }, { $set: { failureCount: 0 } });
+  }
+
+  /**
+   * Count a consecutive fetch failure; once it reaches `config.maxFetchFailures`
+   * the portal is disabled in the DB and a Telegram alert is sent, so a broken
+   * source stops burning cycles until someone re-enables it.
+   */
+  private async onFetchFailure(portalId: Job['portalId'], err: unknown): Promise<void> {
+    const tag = `[${this.portal.name}]`;
+    const updated = await portalsCol().findOneAndUpdate(
+      { _id: portalId },
+      { $inc: { failureCount: 1 } },
+      { returnDocument: 'after' },
+    );
+    const count = updated?.failureCount ?? (this.portal.failureCount ?? 0) + 1;
+    this.portal.failureCount = count;
+    console.error(`${tag} consecutive fetch failure ${count}/${config.maxFetchFailures}`);
+
+    if (count >= config.maxFetchFailures) {
+      await portalsCol().updateOne({ _id: portalId }, { $set: { enabled: false } });
+      this.disabled = true;
+      console.error(`${tag} auto-disabled after ${count} consecutive fetch failures`);
+      await notifyPortalDisabled(this.portal.name, err instanceof Error ? err.message : String(err));
+    }
   }
 
   /** Insert unseen jobs; the unique (portalId, hash) index guards races. */
