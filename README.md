@@ -101,15 +101,15 @@ UA + timeout baked in), `option(key, fallback)` for typed `sourceOptions` access
 export class AcmeSource extends BaseSource {
   async produce(): Promise<RawJob[]> {
     const board = this.option<string>('board', 'acme');
-    const { jobs = [] } = await this.fetchJson<{ jobs?: GreenhouseJob[] }>(
-      `https://boards-api.greenhouse.io/v1/boards/${board}/jobs?content=true`,
+    const { jobs = [] } = await this.fetchJson<{ jobs?: AcmeJob[] }>(
+      `https://acme.example/api/jobs?board=${board}`,
     );
     return jobs
       .filter((j) => /\bintern(ship)?\b/i.test(j.title)) // cheap prefilter cuts LLM load
       .map((j) => ({
         title: j.title,
-        url: j.absolute_url,
-        location: j.location?.name,
+        url: j.url,
+        location: j.location,
         description: htmlToText(j.content),
         company: 'Acme',
       }));
@@ -117,9 +117,26 @@ export class AcmeSource extends BaseSource {
 }
 ```
 
+**If the poster uses a job-board vendor, extend the vendor base instead of `BaseSource`** — it
+already does the fetch, the mapping and the Europe check, so the source is just a `keep()`:
+
+- `GreenhouseSource` (`greenhouse.ts`) — used by `stripe`, `databricks`, `deepmind`.
+- `AshbySource` (`ashby.ts`) — used by `snowflake`, `openai`.
+
+```ts
+export class AcmeSource extends GreenhouseSource {
+  protected readonly defaultBoard = 'acme';
+  protected readonly companyName = 'Acme';
+
+  protected keep(job: GreenhouseJob): boolean {
+    return /\bintern(ship)?\b/i.test(job.title) && isEuropeLocationText(job.location?.name);
+  }
+}
+```
+
 The convention across the built-in sources (`amazon`, `spotify`, `uber`, `bolt`, `stripe`,
 `microsoft`): fetch as few requests as possible, **prefilter cheaply** (title regex, country
-code — see `src/util/europe.ts`) to cut most jobs before the LLM, and let the LLM judge apply
+code or name — see `src/util/europe.ts`) to cut most jobs before the LLM, and let the LLM judge apply
 the software/research + Europe + education rules on what's left. The LLM is used only to
 **judge** and extract enrichment (tags, location, company, seniority, work mode, tech stack,
 salary) — never to fetch or parse listings.
