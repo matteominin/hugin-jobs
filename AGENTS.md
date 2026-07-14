@@ -22,9 +22,14 @@ A scheduler loads enabled **portal** documents from MongoDB and runs each on its
 enabled portals (MongoDB)
   -> Source.produce()          <- the ONLY part you write
   -> dedup by portalId + url/title hash
-  -> LLM judge (DeepSeek) for unjudged jobs
-  -> Telegram notify when suitable
+  -> LLM judge (DeepSeek) for unjudged jobs      | skipped on a portal's
+  -> Telegram notify when suitable               | install cycle (Step 8)
 ```
+
+A portal with `status: "install"` does its first successful cycle as a **baseline**: the jobs
+are stored (marked `backfilled: true`) but never judged or notified, and the portal then flips
+itself to `running`. That is what keeps a new poster's back-catalogue from becoming a hundred
+LLM calls and a Telegram blast. Dry-runs ignore `status`, so it never gets in your way.
 
 | File | Role |
 | --- | --- |
@@ -233,6 +238,11 @@ const registry: Record<string, (portal: Portal) => Source> = {
   company: 'Acme',
 }
 ```
+
+**Do not add `status`.** `npm run seed` sets it `$setOnInsert`, so a portal that is new to the DB
+starts in `install` and baselines itself on its first run, while re-seeding never knocks a live
+portal back into `install`. Only set it explicitly in the seed doc to opt *out* of that
+(`status: 'running'`), which you should be able to justify.
 
 **`promptOverride` is optional and usually WRONG to add.** The global position description
 already covers internship + Europe + no-PhD-only + technical. Add one **only** for a rule the

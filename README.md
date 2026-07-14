@@ -57,8 +57,8 @@ name substring.
 ## Data model
 
 - `settings` — single doc with the `globalPrompt` and `positionDescription` to match against.
-- `portals` — one doc per job poster: `{ name, enabled, intervalSeconds, source, sourceOptions?, company?, promptOverride? }`.
-- `jobs` — jobs produced by a source, deduped per portal, with the LLM match verdict, enrichment, per-job LLM token usage (`usage.inputTokens` / `outputTokens` / `totalTokens`) and notification state.
+- `portals` — one doc per job poster: `{ name, enabled, status?, intervalSeconds, source, sourceOptions?, company?, promptOverride? }`.
+- `jobs` — jobs produced by a source, deduped per portal, with the LLM match verdict, enrichment, per-job LLM token usage (`usage.inputTokens` / `outputTokens` / `totalTokens`) and notification state. Jobs recorded by an `install` cycle carry `backfilled: true` and are never judged or notified.
 
 ## Portal document
 
@@ -69,6 +69,7 @@ holds the per-poster knobs:
 {
   name: "Acme (interns)",   // unique; used for upsert
   enabled: true,            // scheduler only runs enabled portals
+  status: "install",        // optional: baseline the current jobs, then flip to "running"
   intervalSeconds: 1200,    // how often to re-fetch this poster
   source: "acme",           // key of the code source in getSource() (src/sources/index.ts)
   sourceOptions: { … },     // optional: free-form options passed to the source
@@ -88,6 +89,32 @@ applies them, and a copy that drifts out of sync is worse than none.
 
 Insert a portal by adding it to `src/seed.ts` and running `npm run seed` (upserts by `name`),
 or directly with `mongosh`. New portals are picked up on the next scheduler start.
+
+### `status`: install a portal without a notification blast
+
+A brand-new portal's first fetch returns the poster's whole back-catalogue — judging it would
+burn tokens on a hundred old listings and push every match to Telegram at once. `status`
+prevents that:
+
+- **`install`** — the next successful cycle only *records* the portal's current jobs as a
+  baseline: they are stored with `backfilled: true`, and **no LLM call and no notification**
+  happen. The portal then flips itself to `running`, so the cycle after it judges and notifies
+  only jobs that appear *after* the install.
+- **`running`** (the default when the field is absent) — the normal produce → judge → notify cycle.
+
+`npm run seed` sets `status` **only when it inserts** a portal, so a new poster added to
+`src/seed.ts` installs itself on first run, while re-seeding never knocks a live portal back
+into `install`. To re-baseline an existing portal by hand (e.g. after widening its source and
+not wanting the newly-visible old jobs announced):
+
+```js
+db.portals.updateOne({ name: "Acme (interns)" }, { $set: { status: "install" } })
+```
+
+The flip to `running` only happens after the jobs are actually stored, so a portal whose install
+cycle fails to fetch stays in `install` and retries the baseline. Dry-runs ignore `status`
+entirely — they never write or notify, so they judge as usual and let you test a new source
+before it is seeded.
 
 ## Sources
 
