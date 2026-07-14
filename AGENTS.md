@@ -38,6 +38,10 @@ npm run dry-run:sources
 npm run dry-run
 npm run dry-run:sources:google
 npm run dry-run:google
+npm run dry-run:sources:qualcomm
+npm run dry-run:qualcomm
+npm run dry-run:sources:apple
+npm run dry-run:apple
 ```
 
 Dry-run behavior:
@@ -56,6 +60,10 @@ To test one portal:
 ```bash
 HUGIN_PORTAL=google npm run dry-run:sources
 HUGIN_PORTAL=google npm run dry-run
+HUGIN_PORTAL=qualcomm npm run dry-run:sources
+HUGIN_PORTAL=qualcomm npm run dry-run
+HUGIN_PORTAL=apple npm run dry-run:sources
+HUGIN_PORTAL=apple npm run dry-run
 ```
 
 `HUGIN_PORTAL` accepts comma-separated source keys or portal-name substrings. Exact source-key matches take precedence, so `google` means the `google` source, not `Google DeepMind`.
@@ -110,6 +118,20 @@ DeepMind-specific notes:
 - The standalone DeepMind source should only keep explicit student/intern/graduate technical roles.
 - Generic Google Student Researcher roles should stay under Google unless the title explicitly says DeepMind.
 
+Qualcomm-specific notes:
+
+- Qualcomm careers uses Eightfold PCS at `https://careers.qualcomm.com/api/pcsx/search?domain=qualcomm.com`.
+- Pagination uses the `start` query param in increments of returned positions.
+- Full descriptions are at `https://careers.qualcomm.com/api/pcsx/position_details?domain=qualcomm.com&position_id=<id>`.
+- Filter Europe using the final country code in `standardizedLocations`, e.g. `Cork, CO, IE`.
+
+Apple-specific notes:
+
+- Apple Jobs uses `POST https://jobs.apple.com/api/v1/search` and `GET https://jobs.apple.com/api/v1/jobDetails/<jobNumber>`.
+- First hit `https://jobs.apple.com/en-us/search` to collect the lightweight `jobs`/routing cookies before API calls.
+- Search location filters use IDs such as `postLocation-IRL`, `postLocation-GBR`, and `postLocation-DEU`; some guessed country IDs return misleading global results, so keep client-side Europe filtering.
+- The HTML search route also embeds `window.__staticRouterHydrationData`; it is a fallback clue, but the source should prefer the JSON endpoints.
+
 ## LLM And Prompt
 
 Seeded prompt/settings live in `src/seed.ts`, then are stored in MongoDB. Editing `src/seed.ts` does not affect a running bot until `npm run seed` is run and the scheduler is restarted.
@@ -144,4 +166,3 @@ Confirm from logs:
 - source produces plausible candidates
 - dry-run says writes and `lastRunAt` updates are skipped
 - Telegram is not called in dry-run
-

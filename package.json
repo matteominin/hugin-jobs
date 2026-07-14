@@ -9,6 +9,10 @@
     "dry-run:sources": "HUGIN_DRY_RUN=1 HUGIN_DRY_RUN_SKIP_LLM=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
     "dry-run:google": "HUGIN_PORTAL=google HUGIN_DRY_RUN=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
     "dry-run:sources:google": "HUGIN_PORTAL=google HUGIN_DRY_RUN=1 HUGIN_DRY_RUN_SKIP_LLM=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
+    "dry-run:qualcomm": "HUGIN_PORTAL=qualcomm HUGIN_DRY_RUN=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
+    "dry-run:sources:qualcomm": "HUGIN_PORTAL=qualcomm HUGIN_DRY_RUN=1 HUGIN_DRY_RUN_SKIP_LLM=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
+    "dry-run:apple": "HUGIN_PORTAL=apple HUGIN_DRY_RUN=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
+    "dry-run:sources:apple": "HUGIN_PORTAL=apple HUGIN_DRY_RUN=1 HUGIN_DRY_RUN_SKIP_LLM=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
     "start": "node dist/index.js",
     "build": "tsc",
     "seed": "tsx src/seed.ts"

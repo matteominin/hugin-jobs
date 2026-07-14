@@ -102,6 +102,39 @@ export const portalsSeed: Portal[] = [
       'says DeepMind. Reject apprenticeships, STEP, postdoc, PhD-only, senior/staff, manager/director, ' +
       'and non-technical roles.',
   },
+  {
+    // Qualcomm's careers.qualcomm.com Eightfold API. Track Europe-based
+    // technical internships, working-student roles, and graduate SWE/research
+    // roles; descriptions come from the position_details endpoint.
+    name: 'Qualcomm (EU student technical roles)',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'qualcomm',
+    company: 'Qualcomm',
+    promptOverride:
+      'For Qualcomm, treat this portal-specific role-level rule as the applicable criterion: ' +
+      'accept Bachelor/Master-accessible graduate, intern, working-student, SWE intern, research ' +
+      'intern, research engineering intern, AI/ML intern, and technical engineering student roles ' +
+      'in Europe. Reject PhD-only roles, postdoc, senior/staff/lead, manager/director, sales, ' +
+      'marketing, business development, operations, HR, legal, and other non-technical roles.',
+  },
+  {
+    // Apple Jobs public search/detail endpoints. Search is noisy, so the source
+    // scans bounded Europe location buckets plus student technical keywords and
+    // filters obvious non-student/non-technical roles before the LLM.
+    name: 'Apple (EU student technical roles)',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'apple',
+    company: 'Apple',
+    promptOverride:
+      'For Apple, treat this portal-specific role-level rule as the applicable criterion: ' +
+      'accept Bachelor/Master-accessible graduate, intern, working-student, SWE intern, ' +
+      'research intern, AI/ML intern, and technical engineering student roles in Europe. ' +
+      'Reject PhD-only internships, postdoc, senior/staff/lead, manager/director, Apple Retail, ' +
+      'specialist/expert/store roles, sales, marketing, business, operations, HR, legal, finance, ' +
+      'and other non-technical roles.',
+  },
 ];
 
 async function main(): Promise<void> {

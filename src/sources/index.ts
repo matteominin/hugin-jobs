@@ -1,10 +1,12 @@
 import type { Portal } from '../types.js';
 import { AmazonSource } from './amazon.js';
+import { AppleSource } from './apple.js';
 import type { Source } from './base.js';
 import { BoltSource } from './bolt.js';
 import { DeepMindSource } from './deepmind.js';
 import { GoogleSource } from './google.js';
 import { MicrosoftSource } from './microsoft.js';
+import { QualcommSource } from './qualcomm.js';
 import { SpotifySource } from './spotify.js';
 import { StripeSource } from './stripe.js';
 import { UberSource } from './uber.js';
@@ -26,6 +28,8 @@ const registry: Record<string, (portal: Portal) => Source> = {
   microsoft: (portal) => new MicrosoftSource(portal),
   google: (portal) => new GoogleSource(portal),
   deepmind: (portal) => new DeepMindSource(portal),
+  qualcomm: (portal) => new QualcommSource(portal),
+  apple: (portal) => new AppleSource(portal),
 };
 
 /** Resolve the code source for a portal by its `source` key. */

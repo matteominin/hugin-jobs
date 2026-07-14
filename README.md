@@ -30,6 +30,10 @@ npm run dry-run:sources  # fetch + dedup only; no LLM calls
 npm run dry-run          # fetch + dedup + LLM judging; still no writes or Telegram
 npm run dry-run:sources:google  # test only the Google source, no LLM calls
 npm run dry-run:google          # test only Google with LLM judging
+npm run dry-run:sources:qualcomm  # test only Qualcomm, no LLM calls
+npm run dry-run:qualcomm          # test only Qualcomm with LLM judging
+npm run dry-run:sources:apple     # test only Apple, no LLM calls
+npm run dry-run:apple             # test only Apple with LLM judging
 ```
 
 Both commands run enabled portals once and exit. Dry-run still reads MongoDB settings, portals
