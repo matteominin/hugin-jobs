@@ -36,6 +36,8 @@ npm run dry-run:sources:apple     # test only Apple, no LLM calls
 npm run dry-run:apple             # test only Apple with LLM judging
 npm run dry-run:sources:databricks  # test only Databricks, no LLM calls
 npm run dry-run:databricks          # test only Databricks with LLM judging
+npm run dry-run:sources:nvidia    # test only NVIDIA, no LLM calls
+npm run dry-run:nvidia            # test only NVIDIA with LLM judging
 ```
 
 Both commands run enabled portals once and exit. Dry-run still reads MongoDB settings, portals

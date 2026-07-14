@@ -7,6 +7,7 @@ import { DatabricksSource } from './databricks.js';
 import { DeepMindSource } from './deepmind.js';
 import { GoogleSource } from './google.js';
 import { MicrosoftSource } from './microsoft.js';
+import { NvidiaSource } from './nvidia.js';
 import { QualcommSource } from './qualcomm.js';
 import { SpotifySource } from './spotify.js';
 import { StripeSource } from './stripe.js';
@@ -32,6 +33,7 @@ const registry: Record<string, (portal: Portal) => Source> = {
   qualcomm: (portal) => new QualcommSource(portal),
   apple: (portal) => new AppleSource(portal),
   databricks: (portal) => new DatabricksSource(portal),
+  nvidia: (portal) => new NvidiaSource(portal),
 };
 
 /** Resolve the code source for a portal by its `source` key. */

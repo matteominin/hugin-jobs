@@ -153,6 +153,23 @@ export const portalsSeed: Portal[] = [
       'sales, marketing, business development, operations, recruiting, legal, finance, and other ' +
       'non-target roles.',
   },
+  {
+    // NVIDIA Workday CXS API. Discover Workday facet IDs at runtime, restrict
+    // search to Europe country facets, then keep explicit intern/new-grad/
+    // working-student technical roles before LLM judging.
+    name: 'NVIDIA (EU student technical roles)',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'nvidia',
+    company: 'NVIDIA',
+    promptOverride:
+      'For NVIDIA, accept only Bachelor/Master-accessible intern, internship, working-student, ' +
+      'new-college-graduate, new-grad, graduate, SWE intern, research intern, AI/ML intern, ' +
+      'systems/software/hardware/verification engineering student roles in Europe. Reject PhD-only ' +
+      'internships, postdoc, senior/staff/principal/lead, manager/director, architect/solutions ' +
+      'architect, sales, marketing, business development, program/product management, operations, ' +
+      'recruiting, legal, finance, HR, facilities, and other non-target roles.',
+  },
 ];
 
 async function main(): Promise<void> {

@@ -44,6 +44,8 @@ npm run dry-run:sources:apple
 npm run dry-run:apple
 npm run dry-run:sources:databricks
 npm run dry-run:databricks
+npm run dry-run:sources:nvidia
+npm run dry-run:nvidia
 ```
 
 Dry-run behavior:
@@ -68,6 +70,8 @@ HUGIN_PORTAL=apple npm run dry-run:sources
 HUGIN_PORTAL=apple npm run dry-run
 HUGIN_PORTAL=databricks npm run dry-run:sources
 HUGIN_PORTAL=databricks npm run dry-run
+HUGIN_PORTAL=nvidia npm run dry-run:sources
+HUGIN_PORTAL=nvidia npm run dry-run
 ```
 
 `HUGIN_PORTAL` accepts comma-separated source keys or portal-name substrings. Exact source-key matches take precedence, so `google` means the `google` source, not `Google DeepMind`.
@@ -142,6 +146,14 @@ Databricks-specific notes:
 - Public Databricks job URLs are already provided by Greenhouse as `https://databricks.com/company/careers/open-positions/job?gh_jid=<id>`.
 - The board is large and noisy; keep only explicit student/intern/new-grad technical titles before the LLM.
 - Current live Databricks roles may produce zero EU student-level matches; that is acceptable when the only intern roles are US/PhD-only.
+
+NVIDIA-specific notes:
+
+- NVIDIA uses Workday at `https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite`.
+- Search JSON is `POST https://nvidia.wd5.myworkdayjobs.com/wday/cxs/nvidia/NVIDIAExternalCareerSite/jobs`.
+- Detail JSON is `GET https://nvidia.wd5.myworkdayjobs.com/wday/cxs/nvidia/NVIDIAExternalCareerSite<externalPath>`.
+- Workday facet IDs are opaque; discover them from the search response and then filter `locationHierarchy1` to Europe country descriptors.
+- The board is large and noisy; keep only explicit intern/new-college-graduate/working-student technical titles before LLM judging.
 
 ## LLM And Prompt
 
