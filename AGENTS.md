@@ -42,6 +42,8 @@ npm run dry-run:sources:qualcomm
 npm run dry-run:qualcomm
 npm run dry-run:sources:apple
 npm run dry-run:apple
+npm run dry-run:sources:databricks
+npm run dry-run:databricks
 ```
 
 Dry-run behavior:
@@ -64,6 +66,8 @@ HUGIN_PORTAL=qualcomm npm run dry-run:sources
 HUGIN_PORTAL=qualcomm npm run dry-run
 HUGIN_PORTAL=apple npm run dry-run:sources
 HUGIN_PORTAL=apple npm run dry-run
+HUGIN_PORTAL=databricks npm run dry-run:sources
+HUGIN_PORTAL=databricks npm run dry-run
 ```
 
 `HUGIN_PORTAL` accepts comma-separated source keys or portal-name substrings. Exact source-key matches take precedence, so `google` means the `google` source, not `Google DeepMind`.
@@ -131,6 +135,13 @@ Apple-specific notes:
 - First hit `https://jobs.apple.com/en-us/search` to collect the lightweight `jobs`/routing cookies before API calls.
 - Search location filters use IDs such as `postLocation-IRL`, `postLocation-GBR`, and `postLocation-DEU`; some guessed country IDs return misleading global results, so keep client-side Europe filtering.
 - The HTML search route also embeds `window.__staticRouterHydrationData`; it is a fallback clue, but the source should prefer the JSON endpoints.
+
+Databricks-specific notes:
+
+- Databricks uses Greenhouse at `https://boards-api.greenhouse.io/v1/boards/databricks/jobs?content=true`.
+- Public Databricks job URLs are already provided by Greenhouse as `https://databricks.com/company/careers/open-positions/job?gh_jid=<id>`.
+- The board is large and noisy; keep only explicit student/intern/new-grad technical titles before the LLM.
+- Current live Databricks roles may produce zero EU student-level matches; that is acceptable when the only intern roles are US/PhD-only.
 
 ## LLM And Prompt
 

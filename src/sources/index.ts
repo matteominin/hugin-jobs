@@ -3,6 +3,7 @@ import { AmazonSource } from './amazon.js';
 import { AppleSource } from './apple.js';
 import type { Source } from './base.js';
 import { BoltSource } from './bolt.js';
+import { DatabricksSource } from './databricks.js';
 import { DeepMindSource } from './deepmind.js';
 import { GoogleSource } from './google.js';
 import { MicrosoftSource } from './microsoft.js';
@@ -30,6 +31,7 @@ const registry: Record<string, (portal: Portal) => Source> = {
   deepmind: (portal) => new DeepMindSource(portal),
   qualcomm: (portal) => new QualcommSource(portal),
   apple: (portal) => new AppleSource(portal),
+  databricks: (portal) => new DatabricksSource(portal),
 };
 
 /** Resolve the code source for a portal by its `source` key. */

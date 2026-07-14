@@ -135,6 +135,24 @@ export const portalsSeed: Portal[] = [
       'specialist/expert/store roles, sales, marketing, business, operations, HR, legal, finance, ' +
       'and other non-technical roles.',
   },
+  {
+    // Databricks Greenhouse board. The live board is large and mostly full-time
+    // senior/sales/solutions roles, so the source keeps only explicit
+    // student-level technical titles in Europe before LLM judging.
+    name: 'Databricks (EU student technical roles)',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'databricks',
+    company: 'Databricks',
+    promptOverride:
+      'For Databricks, accept only explicit Bachelor/Master-accessible intern, internship, ' +
+      'working-student, new-grad, graduate, SWE intern, research intern, AI/ML intern, or ' +
+      'technical engineering student roles in Europe. Reject PhD-only internships, postdoc, ' +
+      'senior/staff/principal/lead, manager/director, full-time ordinary software roles unless ' +
+      'clearly new-grad/early-career, solutions architect, pre-sales/presales, field engineering, ' +
+      'sales, marketing, business development, operations, recruiting, legal, finance, and other ' +
+      'non-target roles.',
+  },
 ];
 
 async function main(): Promise<void> {
