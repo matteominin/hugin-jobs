@@ -1,9 +1,14 @@
+import { config } from './config.js';
 import { close, connect } from './db.js';
 import { startScheduler, stopScheduler } from './scheduler.js';
 
 async function main(): Promise<void> {
   await connect();
   await startScheduler();
+  if (config.runOnce) {
+    await close();
+    return;
+  }
 
   const shutdown = async (signal: string) => {
     console.log(`\n[main] ${signal} received, shutting down`);

@@ -1,7 +1,8 @@
+import { pathToFileURL } from 'node:url';
 import { close, connect, portals as portalsCol, settings as settingsCol } from './db.js';
 import type { Portal, Settings } from './types.js';
 
-const settings: Settings = {
+export const settingsSeed: Settings = {
   globalPrompt:
     'You are a job-matching assistant. Given a candidate position description and a job listing, ' +
     'decide whether the listing is a genuine fit. Be strict and only mark suitable when ALL hard ' +
@@ -21,7 +22,7 @@ const settings: Settings = {
     'Not interested in non-technical roles (sales, marketing, HR, etc.).',
 };
 
-const portalsSeed: Portal[] = [
+export const portalsSeed: Portal[] = [
   {
     // amazon.jobs public search API: base_query=intern + European country codes.
     // Full descriptions inline; newest-first crawl that stops at the first job
@@ -71,12 +72,42 @@ const portalsSeed: Portal[] = [
     intervalSeconds: 60 * 20,
     source: 'microsoft',
   },
+  {
+    // Google Careers embeds full job records in the search results page. Track
+    // Bachelor/Master-accessible technical student roles, excluding high-school
+    // apprenticeship, STEP, gReach, PhD-only, postdoc and senior/staff tracks.
+    name: 'Google (EU student technical roles)',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'google',
+    promptOverride:
+      'For Google, accept Bachelor/Master-accessible graduate, intern, SWE intern, ' +
+      'research intern, research engineering intern, and Student Researcher BS/MS roles. ' +
+      'Reject apprenticeships, STEP, postdoc, PhD-only, gReach/restricted-program, senior, ' +
+      'staff, manager/director, and non-technical roles.',
+  },
+  {
+    // Google DeepMind's own Greenhouse board. Keep only explicit student/intern
+    // or graduate technical roles; generic full-time research roles are excluded
+    // before the LLM unless they are clearly student-level.
+    name: 'Google DeepMind (EU student technical roles)',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'deepmind',
+    company: 'Google DeepMind',
+    promptOverride:
+      'For Google DeepMind, accept only explicitly DeepMind-branded Bachelor/Master-accessible ' +
+      'graduate, intern, SWE intern, research intern, research engineering intern, or student ' +
+      'research roles. Reject generic Google Student Researcher roles unless the title explicitly ' +
+      'says DeepMind. Reject apprenticeships, STEP, postdoc, PhD-only, senior/staff, manager/director, ' +
+      'and non-technical roles.',
+  },
 ];
 
 async function main(): Promise<void> {
   await connect();
 
-  await settingsCol().updateOne({}, { $set: settings }, { upsert: true });
+  await settingsCol().updateOne({}, { $set: settingsSeed }, { upsert: true });
   console.log('[seed] settings upserted');
 
   for (const portal of portalsSeed) {
@@ -87,7 +118,9 @@ async function main(): Promise<void> {
   await close();
 }
 
-main().catch((err) => {
-  console.error('[seed] failed:', err);
-  process.exit(1);
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((err) => {
+    console.error('[seed] failed:', err);
+    process.exit(1);
+  });
+}

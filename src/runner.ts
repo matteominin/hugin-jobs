@@ -28,30 +28,49 @@ export class JobRunner {
     const { portal } = this;
     const portalId = portal._id!;
     const tag = `[${portal.name}]`;
-    console.log(`${tag} run start (source=${portal.source})`);
+    console.log(`${tag} run start (source=${portal.source}${config.dryRun ? ', dry-run' : ''})`);
 
     // Fetch + persist may fail (network, source change); judging still runs
     // afterwards so any record left unchecked by a previous stopped run — or new
     // ones from this run — is (re)judged. Judging selects jobs with no verdict.
+    let extracted: RawJob[] | null = null;
     try {
-      const extracted = await this.source.produce();
+      extracted = await this.source.produce();
       console.log(`${tag} produced ${extracted.length} jobs`);
 
-      const newCount = await this.persistNew(portalId, extracted);
-      console.log(`${tag} ${newCount} new job(s), ${extracted.length - newCount} already seen`);
+      if (config.dryRun) {
+        await this.logDryRunDedup(portalId, extracted);
+      } else {
+        const newCount = await this.persistNew(portalId, extracted);
+        console.log(`${tag} ${newCount} new job(s), ${extracted.length - newCount} already seen`);
 
-      await this.onFetchSuccess(portalId);
+        await this.onFetchSuccess(portalId);
+      }
     } catch (err) {
       console.error(
-        `${tag} produce/persist failed, judging already-stored jobs anyway:`,
+        config.dryRun
+          ? `${tag} produce failed in dry-run:`
+          : `${tag} produce/persist failed, judging already-stored jobs anyway:`,
         err instanceof Error ? err.message : err,
       );
-      await this.onFetchFailure(portalId, err);
+      if (config.dryRun) {
+        console.error(`${tag} dry-run: skipped failure counter/auto-disable update`);
+      } else {
+        await this.onFetchFailure(portalId, err);
+      }
     }
 
-    await this.judgePending(portalId);
+    if (config.dryRun) {
+      if (extracted) await this.judgeDryRun(portalId, extracted);
+    } else {
+      await this.judgePending(portalId);
+    }
 
-    await portalsCol().updateOne({ _id: portalId }, { $set: { lastRunAt: new Date() } });
+    if (config.dryRun) {
+      console.log(`${tag} dry-run: skipped lastRunAt update`);
+    } else {
+      await portalsCol().updateOne({ _id: portalId }, { $set: { lastRunAt: new Date() } });
+    }
     console.log(`${tag} run done`);
   }
 
@@ -102,6 +121,37 @@ export class JobRunner {
     return newCount;
   }
 
+  /** Report dedup state without inserting jobs. */
+  private async logDryRunDedup(portalId: Job['portalId'], extracted: RawJob[]): Promise<void> {
+    const candidates = await this.dryRunCandidates(portalId, extracted);
+    console.log(
+      `[${this.portal.name}] dry-run: ${candidates.length} would be new, ${extracted.length - candidates.length} already seen`,
+    );
+  }
+
+  /** Build job-shaped records for unseen extracted jobs, without writing them. */
+  private async dryRunCandidates(
+    portalId: Job['portalId'],
+    extracted: RawJob[],
+  ): Promise<Job[]> {
+    const docs = extracted.map((raw) => {
+      const hash = hashJob(portalId.toString(), raw);
+      return { ...raw, portalId, hash, notified: false, createdAt: new Date() } satisfies Job;
+    });
+    if (docs.length === 0) return [];
+
+    const seen = new Set(
+      (
+        await jobsCol()
+          .find({ portalId, hash: { $in: docs.map((d) => d.hash) } })
+          .project({ hash: 1 })
+          .toArray()
+      ).map((d) => d.hash as string),
+    );
+
+    return docs.filter((doc) => !seen.has(doc.hash));
+  }
+
   /**
    * Judge every stored job without a verdict yet (new ones + past failures).
    * The LLM calls are the slow part, so we run them in concurrent batches of
@@ -109,16 +159,35 @@ export class JobRunner {
    * pending and is retried next cycle) so one bad call can't sink the batch.
    */
   private async judgePending(portalId: Job['portalId']): Promise<void> {
+    const pending = await jobsCol().find({ portalId, match: { $exists: false } }).toArray();
+    await this.judgeJobs(pending, false);
+  }
+
+  /** Judge extracted-but-unpersisted jobs in dry-run mode. */
+  private async judgeDryRun(portalId: Job['portalId'], extracted: RawJob[]): Promise<void> {
+    const candidates = await this.dryRunCandidates(portalId, extracted);
+    if (candidates.length === 0) return;
+    if (config.dryRunSkipLlm) {
+      for (const job of candidates) {
+        console.log(`[${this.portal.name}] dry-run: would judge "${job.title}"`);
+      }
+      console.log(`[${this.portal.name}] dry-run: skipped LLM for ${candidates.length} job(s)`);
+      return;
+    }
+    await this.judgeJobs(candidates, true);
+  }
+
+  /** Judge jobs and either persist/notify (live) or only log outcomes (dry-run). */
+  private async judgeJobs(candidates: Job[], dryRun: boolean): Promise<void> {
     const settings = await this.loadSettings();
     const tag = `[${this.portal.name}]`;
-    const pending = await jobsCol().find({ portalId, match: { $exists: false } }).toArray();
-    if (pending.length === 0) return;
+    if (candidates.length === 0) return;
 
     let tokensIn = 0;
     let tokensOut = 0;
     let judged = 0;
-    for (let i = 0; i < pending.length; i += config.judgeConcurrency) {
-      const batch = pending.slice(i, i + config.judgeConcurrency);
+    for (let i = 0; i < candidates.length; i += config.judgeConcurrency) {
+      const batch = candidates.slice(i, i + config.judgeConcurrency);
       const settled = await Promise.allSettled(
         batch.map((job) => judge(job, settings, this.portal)),
       );
@@ -133,23 +202,29 @@ export class JobRunner {
         }
 
         const { match, enrichment, usage } = result.value;
-        await jobsCol().updateOne({ _id: job._id }, { $set: { match, enrichment, usage } });
+        if (!dryRun) {
+          await jobsCol().updateOne({ _id: job._id }, { $set: { match, enrichment, usage } });
+        }
         tokensIn += usage.inputTokens;
         tokensOut += usage.outputTokens;
         judged++;
         console.log(
-          `${tag} judged "${job.title}" → suitable=${match.suitable} score=${match.score.toFixed(2)} tags=[${enrichment.tags.join(', ')}] tokens=${usage.inputTokens}/${usage.outputTokens}`,
+          `${tag} ${dryRun ? 'dry-run: ' : ''}judged "${job.title}" → suitable=${match.suitable} score=${match.score.toFixed(2)} tags=[${enrichment.tags.join(', ')}] tokens=${usage.inputTokens}/${usage.outputTokens}`,
         );
 
         if (match.suitable) {
-          await notify({ ...job, match, enrichment });
-          await jobsCol().updateOne({ _id: job._id }, { $set: { notified: true } });
+          if (dryRun) {
+            console.log(`${tag} dry-run: would notify "${job.title}"`);
+          } else {
+            await notify({ ...job, match, enrichment });
+            await jobsCol().updateOne({ _id: job._id }, { $set: { notified: true } });
+          }
         }
       }
     }
 
     console.log(
-      `${tag} judged ${judged}/${pending.length} job(s), tokens in/out: ${tokensIn}/${tokensOut}`,
+      `${tag} ${dryRun ? 'dry-run: ' : ''}judged ${judged}/${candidates.length} job(s), tokens in/out: ${tokensIn}/${tokensOut}`,
     );
   }
 

@@ -28,6 +28,11 @@ export async function notifyPortalDisabled(portalName: string, reason: string): 
 
 /** Send one HTML message to every seeded chat id. No-op (with warning) if unconfigured. */
 async function sendMessage(text: string): Promise<void> {
+  if (config.dryRun) {
+    console.warn(`[telegram] dry-run skipped:\n${text}`);
+    return;
+  }
+
   if (!config.telegramBotToken || config.telegramChatIds.length === 0) {
     console.warn('[telegram] skipped — bot token or chat ids not configured');
     return;

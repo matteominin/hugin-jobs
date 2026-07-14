@@ -20,6 +20,26 @@ npm run dev            # start the scheduler
 
 MongoDB is expected on `mongodb://localhost:27018` (local docker instance).
 
+## Safe testing
+
+Use dry-run mode to test sources and matching without changing stored jobs, portal state or
+sending Telegram messages:
+
+```bash
+npm run dry-run:sources  # fetch + dedup only; no LLM calls
+npm run dry-run          # fetch + dedup + LLM judging; still no writes or Telegram
+npm run dry-run:sources:google  # test only the Google source, no LLM calls
+npm run dry-run:google          # test only Google with LLM judging
+```
+
+Both commands run enabled portals once and exit. Dry-run still reads MongoDB settings, portals
+and existing jobs so it can use the same config and report what would be new. It also adds
+enabled seed portals in memory when they have not been inserted yet, so new sources can be
+tested before running `npm run seed`.
+
+Set `HUGIN_PORTAL=google,deepmind` with any dry-run command to limit by source key or portal
+name substring.
+
 ## Data model
 
 - `settings` — single doc with the `globalPrompt` and `positionDescription` to match against.
