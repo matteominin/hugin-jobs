@@ -6,21 +6,9 @@ const BASE = 'https://nvidia.wd5.myworkdayjobs.com';
 const SITE = 'NVIDIAExternalCareerSite';
 const SEARCH_URL = `${BASE}/wday/cxs/nvidia/${SITE}/jobs`;
 const PUBLIC_BASE = `${BASE}/en-US/${SITE}`;
+/** Workday's CXS page size. 20 is its hard cap — a larger limit is a 400. */
 const DEFAULT_LIMIT = 20;
 const DEFAULT_MAX_PAGES = 5;
-const DEFAULT_QUERIES = [
-  '',
-  'intern',
-  'internship',
-  'software intern',
-  'research intern',
-  'machine learning intern',
-  'new college graduate',
-  'new grad',
-  'graduate software',
-  'working student',
-  'student software',
-];
 
 const EUROPE_COUNTRIES = new Set([
   'Austria',
@@ -120,23 +108,20 @@ interface SearchBody {
 
 /**
  * NVIDIA uses Workday's public CXS JSON endpoints. The source discovers the
- * current Workday facet IDs at runtime, filters to Europe countries, then scans
- * student-level search terms and Workday's Intern/New College Graduate subtype.
+ * current Workday facet IDs at runtime, then pages one search filtered to the
+ * European countries crossed with Workday's Intern / New College Graduate
+ * worker subtype — which is exactly the target population, so no free-text
+ * search terms are needed on top. The trade-off is that a role NVIDIA tags with
+ * the wrong subtype won't be seen.
  */
 export class NvidiaSource extends BaseSource {
   async produce(): Promise<RawJob[]> {
     const limit = this.option<number>('limit', DEFAULT_LIMIT);
     const maxPages = this.option<number>('maxPages', DEFAULT_MAX_PAGES);
-    const queries = this.option<string[]>('queries', DEFAULT_QUERIES);
 
     const facets = await this.loadFacets();
     const europeIds = this.facetIds(facets, 'locationHierarchy1', EUROPE_COUNTRIES);
     const studentWorkerIds = this.facetIdsMatching(facets, 'workerSubType', /intern|new college graduate/i);
-    const technicalFamilyIds = this.facetIdsMatching(
-      facets,
-      'jobFamilyGroup',
-      /engineering|research|it|univ employment/i,
-    );
 
     const postings = new Map<string, WorkdayPosting>();
 
@@ -148,13 +133,6 @@ export class NvidiaSource extends BaseSource {
         limit,
         maxPages,
       );
-    }
-
-    for (const query of queries) {
-      const appliedFacets: Record<string, string[]> = {};
-      if (europeIds.length > 0) appliedFacets.locationHierarchy1 = europeIds;
-      if (technicalFamilyIds.length > 0) appliedFacets.jobFamilyGroup = technicalFamilyIds;
-      await this.collectPostings(postings, appliedFacets, query, limit, maxPages);
     }
 
     const rawJobs: RawJob[] = [];

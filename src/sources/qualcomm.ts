@@ -7,16 +7,14 @@ const API_BASE = 'https://careers.qualcomm.com';
 const DOMAIN = 'qualcomm.com';
 const SEARCH_URL = `${API_BASE}/api/pcsx/search`;
 const DETAILS_URL = `${API_BASE}/api/pcsx/position_details`;
-const DEFAULT_QUERIES = [
-  'intern',
-  'internship',
-  'software intern',
-  'engineering intern',
-  'research intern',
-  'working student',
-  'graduate',
-  'new graduate',
-];
+/**
+ * Eightfold matches on tokens, so a narrower phrase never adds anything its
+ * head term didn't already find: "intern" subsumes "software/engineering/
+ * research intern" and "internship", and "graduate" subsumes "new graduate".
+ * These three are what's left once the subsumed phrasings are removed — they
+ * return the same postings for a third of the requests.
+ */
+const DEFAULT_QUERIES = ['intern', 'graduate', 'working student'];
 const DEFAULT_MAX_PER_QUERY = 120;
 
 const TARGET_LEVEL =

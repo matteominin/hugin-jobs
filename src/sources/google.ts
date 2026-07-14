@@ -15,9 +15,9 @@ const DEFAULT_QUERIES = [
   'new grad software engineer',
   'graduate software engineer',
   'research software engineer',
-  'deepmind student researcher',
+  // One DeepMind phrasing is enough: the variants ("deepmind student
+  // researcher", "deepmind research engineer") return the same postings.
   'google deepmind student researcher',
-  'deepmind research engineer',
 ];
 const DEFAULT_MAX_PAGES = 3;
 

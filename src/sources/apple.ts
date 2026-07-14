@@ -8,28 +8,15 @@ const BASE = 'https://jobs.apple.com';
 const LOCALE = 'en-us';
 const SEARCH_URL = `${BASE}/api/v1/search`;
 const DETAILS_URL = `${BASE}/api/v1/jobDetails`;
-const DEFAULT_LOCATION_IDS = [
-  'postLocation-IRL',
-  'postLocation-GBR',
-  'postLocation-DEU',
-  'postLocation-NLD',
-  'postLocation-SWE',
-  'postLocation-DNK',
-  'postLocation-AUT',
-  'postLocation-POL',
-  'postLocation-CZE',
-];
-const DEFAULT_KEYWORDS = [
-  'software intern',
-  'machine learning intern',
-  'ai intern',
-  'research intern',
-  'internship',
-  'graduate engineer',
-  'student software',
-];
-const DEFAULT_MAX_LOCATION_PAGES = 15;
-const DEFAULT_MAX_KEYWORD_PAGES = 6;
+/** Every European country Apple can post in — the search takes them in one filter. */
+const DEFAULT_LOCATION_IDS = EUROPE_ALPHA3.map((code) => `postLocation-${code}`);
+/**
+ * Pages of 20 to walk before giving up. Europe is ~300 postings (15 pages), so
+ * this is headroom: `searchAll` stops as soon as it has every record, and the
+ * cap only exists to bound a runaway loop. Keep it well clear of the real page
+ * count or the sweep silently truncates.
+ */
+const DEFAULT_MAX_LOCATION_PAGES = 40;
 
 const TARGET_LEVEL =
   /\b(intern(ship)?|student|students|working student|graduate|new grad|university graduate|masters? internship|early career)\b/i;
@@ -83,8 +70,14 @@ interface AppleSearchBody {
 /**
  * Apple Jobs exposes a public React route plus JSON endpoints. Direct API calls
  * work after the jobs site sets its lightweight routing cookies, so this source
- * initializes that cookie, POSTs bounded searches, then fetches details for the
- * student-level technical roles that survive local filtering.
+ * initializes that cookie, pages one search filtered to every European country,
+ * then fetches details for the student-level technical roles that survive local
+ * filtering.
+ *
+ * The search takes all of Europe in a single `locations` filter, so that sweep
+ * already contains every European posting; keyword searches on top of it can
+ * only return jobs it has already seen (they search globally and are then
+ * Europe-filtered anyway), which is why there are none.
  */
 export class AppleSource extends BaseSource {
   private cookie = '';
@@ -93,9 +86,7 @@ export class AppleSource extends BaseSource {
     await this.establishCookie();
 
     const locationIds = this.option<string[]>('locationIds', DEFAULT_LOCATION_IDS);
-    const keywords = this.option<string[]>('keywords', DEFAULT_KEYWORDS);
     const maxLocationPages = this.option<number>('maxLocationPages', DEFAULT_MAX_LOCATION_PAGES);
-    const maxKeywordPages = this.option<number>('maxKeywordPages', DEFAULT_MAX_KEYWORD_PAGES);
     const jobs = new Map<string, AppleJob>();
 
     const locationResults = await this.searchAll(
@@ -104,16 +95,6 @@ export class AppleSource extends BaseSource {
     );
     for (const job of locationResults) {
       if (this.keep(job)) jobs.set(this.idOf(job), job);
-    }
-
-    for (const keyword of keywords) {
-      const keywordResults = await this.searchAll(
-        { query: '', filters: { keywords: [keyword] } },
-        maxKeywordPages,
-      );
-      for (const job of keywordResults) {
-        if (this.keep(job)) jobs.set(this.idOf(job), job);
-      }
     }
 
     const rawJobs: RawJob[] = [];
