@@ -1,5 +1,11 @@
 import { config } from './config.js';
+import { statusMessage } from './status.js';
 import type { Job } from './types.js';
+
+interface TelegramUpdate {
+  update_id: number;
+  message?: { text?: string; chat?: { id: number | string } };
+}
 
 /** Notify every seeded chat about a matched job. */
 export async function notify(job: Job): Promise<void> {
@@ -38,24 +44,155 @@ async function sendMessage(text: string): Promise<void> {
     return;
   }
 
-  const url = `https://api.telegram.org/bot${config.telegramBotToken}/sendMessage`;
-  for (const chatId of config.telegramChatIds) {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text,
-        parse_mode: 'HTML',
-        disable_web_page_preview: true,
-      }),
-    });
-    if (!res.ok) {
-      console.error(`[telegram] send to ${chatId} failed: ${res.status} ${await res.text()}`);
-    }
+  for (const chatId of config.telegramChatIds) await sendTo(chatId, text);
+}
+
+/** Send one HTML message to a single chat. */
+async function sendTo(chatId: string, text: string): Promise<void> {
+  const res = await api('sendMessage', {
+    chat_id: chatId,
+    text,
+    parse_mode: 'HTML',
+    disable_web_page_preview: true,
+  });
+  if (!res.ok) {
+    console.error(`[telegram] send to ${chatId} failed: ${res.status} ${await res.text()}`);
   }
+}
+
+function api(method: string, body: unknown, signal?: AbortSignal): Promise<Response> {
+  return fetch(`https://api.telegram.org/bot${config.telegramBotToken}/${method}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+    signal,
+  });
+}
+
+async function call<T>(method: string, body: unknown, signal?: AbortSignal): Promise<T> {
+  const res = await api(method, body, signal);
+  const json = (await res.json()) as { ok: boolean; result?: T; description?: string };
+  if (!res.ok || !json.ok) throw new Error(`${method}: ${res.status} ${json.description ?? ''}`);
+  return json.result as T;
 }
 
 function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/* ------------------------------------------------------------------ commands */
+
+const HELP =
+  'Commands:\n/status — service + portal health\n/ping — same thing, shorter to type';
+
+let polling = false;
+/** in-flight long poll, so shutdown doesn't wait out the 30s timeout */
+let inFlight: AbortController | null = null;
+
+/**
+ * Listen for commands via getUpdates long-polling. Polling (rather than a
+ * webhook) keeps this working wherever the service runs: it needs no public URL
+ * and no inbound port, only the bot token we already have.
+ *
+ * Long-polling and a webhook are mutually exclusive per bot — if a webhook was
+ * ever set on this token, getUpdates 409s until it is deleted.
+ */
+export function startTelegramCommands(): void {
+  if (config.dryRun || config.runOnce) return;
+  if (!config.telegramBotToken) {
+    console.warn('[telegram] command listener off — no bot token configured');
+    return;
+  }
+  polling = true;
+  void pollLoop();
+}
+
+export function stopTelegramCommands(): void {
+  polling = false;
+  inFlight?.abort();
+}
+
+async function pollLoop(): Promise<void> {
+  let offset: number;
+  try {
+    offset = await skipBacklog();
+    await call('setMyCommands', {
+      commands: [
+        { command: 'status', description: 'Service + portal health' },
+        { command: 'ping', description: 'Service + portal health' },
+      ],
+    });
+  } catch (err) {
+    console.error('[telegram] command listener failed to start:', message(err));
+    polling = false;
+    return;
+  }
+  console.log('[telegram] command listener polling for /status');
+
+  while (polling) {
+    try {
+      inFlight = new AbortController();
+      const updates = await call<TelegramUpdate[]>(
+        'getUpdates',
+        { offset, timeout: 30, allowed_updates: ['message'] },
+        inFlight.signal,
+      );
+      for (const update of updates) {
+        // advance first: a command we can't answer must not be retried forever
+        offset = update.update_id + 1;
+        try {
+          await handleUpdate(update);
+        } catch (err) {
+          console.error('[telegram] handling update failed:', message(err));
+        }
+      }
+    } catch (err) {
+      if (!polling) return;
+      console.error('[telegram] poll failed, retrying in 5s:', message(err));
+      await new Promise((r) => setTimeout(r, 5000));
+    } finally {
+      inFlight = null;
+    }
+  }
+}
+
+/**
+ * Telegram queues updates for ~24h, so a restart would otherwise replay every
+ * ping sent while we were down. Acknowledge the backlog and start after it.
+ */
+async function skipBacklog(): Promise<number> {
+  const [last] = await call<TelegramUpdate[]>('getUpdates', { offset: -1, timeout: 0 });
+  return last ? last.update_id + 1 : 0;
+}
+
+async function handleUpdate(update: TelegramUpdate): Promise<void> {
+  const text = update.message?.text?.trim();
+  const chatId = update.message?.chat?.id;
+  if (!text || chatId === undefined) return;
+
+  const chat = String(chatId);
+  // Same allow-list we notify: the bot's id is public, so anyone can message it.
+  if (!config.telegramChatIds.includes(chat)) {
+    console.warn(`[telegram] ignored "${text.slice(0, 32)}" from unknown chat ${chat}`);
+    return;
+  }
+
+  // "/status@hugin_bot arg" → "/status"
+  const command = text.split(/\s+/)[0].split('@')[0].toLowerCase();
+  switch (command) {
+    case '/status':
+    case '/ping':
+      await sendTo(chat, await statusMessage());
+      break;
+    case '/start':
+    case '/help':
+      await sendTo(chat, HELP);
+      break;
+    default:
+      console.log(`[telegram] unknown command ${command} from ${chat}`);
+  }
+}
+
+function message(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
 }

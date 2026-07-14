@@ -2,6 +2,7 @@ import { config } from './config.js';
 import { close, connect } from './db.js';
 import { startScheduler, stopScheduler } from './scheduler.js';
 import { startServer } from './server.js';
+import { startTelegramCommands, stopTelegramCommands } from './telegram.js';
 
 async function main(): Promise<void> {
   await connect();
@@ -12,10 +13,12 @@ async function main(): Promise<void> {
   }
 
   const server = startServer();
+  startTelegramCommands();
 
   const shutdown = async (signal: string) => {
     console.log(`\n[main] ${signal} received, shutting down`);
     stopScheduler();
+    stopTelegramCommands();
     server.close();
     await close();
     process.exit(0);

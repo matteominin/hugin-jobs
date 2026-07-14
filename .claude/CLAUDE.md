@@ -282,7 +282,8 @@ what you *expected* to match. **Never report "it works" without having seen the 
 
 ### Step 12 — Commit, then ask about seeding
 
-Small commits, one logical change each, one-line subject (see `.claude/CLAUDE.md`).
+Commit as you go, not in one lump at the end — small commits, one logical change each, one-line
+subject. Full rules in §8.
 
 The portal is in `seed.ts` but **not in the DB** until someone runs `npm run seed`. That is the
 user's call, not yours — ask (§2).
@@ -465,6 +466,34 @@ npm run dry-run:sources              # nothing else regressed
 - [ ] **Request count measured (§5) and every request justified.** State the number.
 - [ ] Page caps have headroom above the real page count.
 - [ ] Job list read and sanity-checked; 0 jobs explained, not shrugged at.
-- [ ] Committed in small logical commits. **Not seeded** — asked the user instead.
+- [ ] Committed in small logical commits with one-line messages (§8). **Not seeded** — asked the
+      user instead.
 - [ ] Reported honestly: what you measured, what you assumed, what you did not check. If you did
       not run it, say so.
+
+---
+
+## 8. Committing
+
+**Commit often, in small pieces, with a one-line message.** Applies to all work in this repo, not
+just new portals.
+
+- **Commit as soon as a change stands on its own** — a new source file, a filter fix, a
+  `package.json` script, a README line. Don't batch a session's work into one commit at the end.
+  If you find yourself about to commit two things joined by "and", that was two commits.
+- **One line. No body.** Imperative mood, ~50 chars, says what changed and no more:
+
+  ```text
+  Add Acme source for EU student technical roles     <- good
+  Cut Qualcomm query set from 8 to 3                 <- good
+  Fix \bintern\b boundary in the OpenAI title filter <- good
+
+  Update files                                       <- says nothing
+  Add Acme source and fix Qualcomm queries and ...   <- that is 2+ commits
+  ```
+
+- **Commit only what compiles.** `npx tsc --noEmit` clean before each one. A broken intermediate
+  commit is worse than a big one.
+- **Never commit secrets** (§2): no Mongo URIs, no Telegram tokens, no `.env`.
+- **Do not push, branch, or open a PR unless asked.** Committing is yours; publishing is the
+  user's call, same as seeding (§3 Step 12).
