@@ -81,6 +81,11 @@ holds the per-poster knobs:
 more often, and add poster-specific criteria (e.g. "only the Dublin office") without touching
 the global prompt.
 
+`promptOverride` is **optional and usually unnecessary** — it exists for a rule the global
+position description can't express, like "an OpenAI *Residency* counts as an internship". Don't
+restate the global rules (internship, Europe, no PhD-only, technical) in it: the judge already
+applies them, and a copy that drifts out of sync is worse than none.
+
 Insert a portal by adding it to `src/seed.ts` and running `npm run seed` (upserts by `name`),
 or directly with `mongosh`. New portals are picked up on the next scheduler start.
 
@@ -140,3 +145,21 @@ code or name — see `src/util/europe.ts`) to cut most jobs before the LLM, and 
 the software/research + Europe + education rules on what's left. The LLM is used only to
 **judge** and extract enrichment (tags, location, company, seniority, work mode, tech stack,
 salary) — never to fetch or parse listings.
+
+### Keep the request count down
+
+A cycle should be as few requests as it can be — most boards are one. When a search API forces
+a fan-out:
+
+- **Prefer one structured sweep to a loop of free-text queries.** If the API filters by country
+  or worker-type facets, page that once: `apple` takes all 28 European countries in a single
+  `locations` filter, `nvidia` crosses the Europe facet with Workday's Intern/New-College-Grad
+  subtype. A keyword loop layered on top mostly re-finds what the sweep already returned.
+- **Drop phrasings the head term subsumes.** Qualcomm's Eightfold search matches on tokens, so
+  "intern" already covers "software intern" and "internship".
+- **Measure, don't guess.** Wrap `globalThis.fetch` to count requests and diff the job set with
+  and without a query before keeping it. Google is the counter-example worth knowing: its
+  free-text queries each pull genuinely different roles and its pagination is real, so its
+  ~30 requests are load-bearing.
+- **Check the page cap can't truncate.** A sweep capped at N pages that quietly stops at N is a
+  silent miss, not an error — leave real headroom above the actual page count.
