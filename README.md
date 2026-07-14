@@ -38,6 +38,12 @@ npm run dry-run:sources:databricks  # test only Databricks, no LLM calls
 npm run dry-run:databricks          # test only Databricks with LLM judging
 npm run dry-run:sources:nvidia    # test only NVIDIA, no LLM calls
 npm run dry-run:nvidia            # test only NVIDIA with LLM judging
+npm run dry-run:sources:snowflake # test only Snowflake, no LLM calls
+npm run dry-run:snowflake         # test only Snowflake with LLM judging
+npm run dry-run:sources:openai    # test only OpenAI, no LLM calls
+npm run dry-run:openai            # test only OpenAI with LLM judging
+npm run dry-run:sources:palantir  # test only Palantir, no LLM calls
+npm run dry-run:palantir          # test only Palantir with LLM judging
 ```
 
 Both commands run enabled portals once and exit. Dry-run still reads MongoDB settings, portals

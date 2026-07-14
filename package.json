@@ -17,6 +17,12 @@
     "dry-run:sources:databricks": "HUGIN_PORTAL=databricks HUGIN_DRY_RUN=1 HUGIN_DRY_RUN_SKIP_LLM=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
     "dry-run:nvidia": "HUGIN_PORTAL=nvidia HUGIN_DRY_RUN=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
     "dry-run:sources:nvidia": "HUGIN_PORTAL=nvidia HUGIN_DRY_RUN=1 HUGIN_DRY_RUN_SKIP_LLM=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
+    "dry-run:snowflake": "HUGIN_PORTAL=snowflake HUGIN_DRY_RUN=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
+    "dry-run:sources:snowflake": "HUGIN_PORTAL=snowflake HUGIN_DRY_RUN=1 HUGIN_DRY_RUN_SKIP_LLM=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
+    "dry-run:openai": "HUGIN_PORTAL=openai HUGIN_DRY_RUN=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
+    "dry-run:sources:openai": "HUGIN_PORTAL=openai HUGIN_DRY_RUN=1 HUGIN_DRY_RUN_SKIP_LLM=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
+    "dry-run:palantir": "HUGIN_PORTAL=palantir HUGIN_DRY_RUN=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
+    "dry-run:sources:palantir": "HUGIN_PORTAL=palantir HUGIN_DRY_RUN=1 HUGIN_DRY_RUN_SKIP_LLM=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
     "start": "node dist/index.js",
     "build": "tsc",
     "seed": "tsx src/seed.ts"

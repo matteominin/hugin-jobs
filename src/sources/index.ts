@@ -8,7 +8,10 @@ import { DeepMindSource } from './deepmind.js';
 import { GoogleSource } from './google.js';
 import { MicrosoftSource } from './microsoft.js';
 import { NvidiaSource } from './nvidia.js';
+import { OpenAiSource } from './openai.js';
+import { PalantirSource } from './palantir.js';
 import { QualcommSource } from './qualcomm.js';
+import { SnowflakeSource } from './snowflake.js';
 import { SpotifySource } from './spotify.js';
 import { StripeSource } from './stripe.js';
 import { UberSource } from './uber.js';
@@ -34,6 +37,9 @@ const registry: Record<string, (portal: Portal) => Source> = {
   apple: (portal) => new AppleSource(portal),
   databricks: (portal) => new DatabricksSource(portal),
   nvidia: (portal) => new NvidiaSource(portal),
+  snowflake: (portal) => new SnowflakeSource(portal),
+  openai: (portal) => new OpenAiSource(portal),
+  palantir: (portal) => new PalantirSource(portal),
 };
 
 /** Resolve the code source for a portal by its `source` key. */

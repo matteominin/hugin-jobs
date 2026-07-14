@@ -170,6 +170,42 @@ export const portalsSeed: Portal[] = [
       'architect, sales, marketing, business development, program/product management, operations, ' +
       'recruiting, legal, finance, HR, facilities, and other non-target roles.',
   },
+  {
+    // Snowflake's Ashby board (full descriptions inline). The board skews senior
+    // and go-to-market and posts many non-technical interns (SDR, marketing,
+    // comms), so the source keeps only technical student titles in Europe.
+    name: 'Snowflake (EU student technical roles)',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'snowflake',
+    company: 'Snowflake',
+  },
+  {
+    // OpenAI's Ashby board (full descriptions inline). Europe is ~60 roles but
+    // internships/residencies are posted rarely, so this portal is often empty —
+    // that is expected, not a fetch failure.
+    name: 'OpenAI (EU student technical roles)',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'openai',
+    company: 'OpenAI',
+    promptOverride:
+      'An OpenAI "Residency" is an early-career track equivalent to an internship — treat it as ' +
+      'satisfying the internship requirement when it is open to Bachelor/Master graduates.',
+  },
+  {
+    // Palantir's Lever board (full descriptions inline, real alpha-2 country per
+    // posting). Keeps intern-commitment or intern-titled technical roles in
+    // Europe; Deployment Strategist is left to the LLM to judge.
+    name: 'Palantir (EU student technical roles)',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'palantir',
+    company: 'Palantir',
+    promptOverride:
+      'Palantir "Deployment Strategist" roles are only a fit when the listing describes genuine ' +
+      'software or technical engineering work rather than a business/analyst role.',
+  },
 ];
 
 async function main(): Promise<void> {
