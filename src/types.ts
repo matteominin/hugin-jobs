@@ -5,10 +5,19 @@ import { ObjectId } from 'mongodb';
  * (see src/sources/); the document only names the source and holds the per-portal
  * knobs: how often to run, an optional prompt override, and options for the source.
  */
+/**
+ * `install` — the next successful cycle only records the portal's current jobs as
+ * a baseline (no LLM, no notification) and then flips the portal to `running`.
+ * `running` (the default when absent) — the normal produce → judge → notify cycle.
+ */
+export type PortalStatus = 'install' | 'running';
+
 export interface Portal {
   _id?: ObjectId;
   name: string;
   enabled: boolean;
+  /** defaults to 'running' when absent */
+  status?: PortalStatus;
   /** how often to re-fetch this portal, in seconds */
   intervalSeconds: number;
   /** key of the code source that produces this portal's jobs (see getSource) */
@@ -69,6 +78,8 @@ export interface Job extends RawJob {
   enrichment?: Enrichment;
   /** token usage of the judge call that produced `match` */
   usage?: TokenUsage;
+  /** recorded by an `install` baseline cycle: never judged, never notified */
+  backfilled?: boolean;
   notified: boolean;
   createdAt: Date;
 }

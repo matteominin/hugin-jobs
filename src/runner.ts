@@ -28,7 +28,12 @@ export class JobRunner {
     const { portal } = this;
     const portalId = portal._id!;
     const tag = `[${portal.name}]`;
-    console.log(`${tag} run start (source=${portal.source}${config.dryRun ? ', dry-run' : ''})`);
+    // dry-run neither writes nor notifies, so the baseline would only hide the
+    // judging it exists to exercise: test new portals as if they were running.
+    const installing = portal.status === 'install' && !config.dryRun;
+    console.log(
+      `${tag} run start (source=${portal.source}${installing ? ', install' : ''}${config.dryRun ? ', dry-run' : ''})`,
+    );
 
     // Fetch + persist may fail (network, source change); judging still runs
     // afterwards so any record left unchecked by a previous stopped run — or new
@@ -41,10 +46,16 @@ export class JobRunner {
       if (config.dryRun) {
         await this.logDryRunDedup(portalId, extracted);
       } else {
-        const newCount = await this.persistNew(portalId, extracted);
-        console.log(`${tag} ${newCount} new job(s), ${extracted.length - newCount} already seen`);
+        const newCount = await this.persistNew(portalId, extracted, installing);
+        console.log(
+          installing
+            ? `${tag} install: recorded ${newCount} job(s) as baseline, ${extracted.length - newCount} already seen`
+            : `${tag} ${newCount} new job(s), ${extracted.length - newCount} already seen`,
+        );
 
         await this.onFetchSuccess(portalId);
+        // only once the baseline is actually stored, so a failed install retries
+        if (installing) await this.finishInstall(portalId);
       }
     } catch (err) {
       console.error(
@@ -60,7 +71,9 @@ export class JobRunner {
       }
     }
 
-    if (config.dryRun) {
+    if (installing) {
+      console.log(`${tag} install: skipped LLM judging and notifications for this cycle`);
+    } else if (config.dryRun) {
       if (extracted) await this.judgeDryRun(portalId, extracted);
     } else {
       await this.judgePending(portalId);
@@ -105,12 +118,37 @@ export class JobRunner {
     }
   }
 
-  /** Insert unseen jobs; the unique (portalId, hash) index guards races. */
-  private async persistNew(portalId: Job['portalId'], extracted: RawJob[]): Promise<number> {
+  /**
+   * Leave `install` once the baseline is stored, so the next cycle judges and
+   * notifies normally. The in-memory portal is updated too: the scheduler keeps
+   * the same object across cycles.
+   */
+  private async finishInstall(portalId: Job['portalId']): Promise<void> {
+    // catches jobs stored before the portal was put back into install
+    await jobsCol().updateMany(
+      { portalId, match: { $exists: false } },
+      { $set: { backfilled: true } },
+    );
+    this.portal.status = 'running';
+    await portalsCol().updateOne({ _id: portalId }, { $set: { status: 'running' } });
+    console.log(`[${this.portal.name}] install complete → status=running`);
+  }
+
+  /**
+   * Insert unseen jobs; the unique (portalId, hash) index guards races.
+   * During an install cycle the inserts are marked `backfilled`, which keeps them
+   * out of `judgePending` forever — they are the "already knew about these" set.
+   */
+  private async persistNew(
+    portalId: Job['portalId'],
+    extracted: RawJob[],
+    installing = false,
+  ): Promise<number> {
     let newCount = 0;
     for (const raw of extracted) {
       const hash = hashJob(portalId.toString(), raw);
       const doc: Job = { ...raw, portalId, hash, notified: false, createdAt: new Date() };
+      if (installing) doc.backfilled = true;
       const res = await jobsCol().updateOne(
         { portalId, hash },
         { $setOnInsert: doc },
@@ -153,13 +191,16 @@ export class JobRunner {
   }
 
   /**
-   * Judge every stored job without a verdict yet (new ones + past failures).
+   * Judge every stored job without a verdict yet (new ones + past failures),
+   * except the baseline recorded by an install cycle.
    * The LLM calls are the slow part, so we run them in concurrent batches of
    * `config.judgeConcurrency`. Failures are isolated per job (the job stays
    * pending and is retried next cycle) so one bad call can't sink the batch.
    */
   private async judgePending(portalId: Job['portalId']): Promise<void> {
-    const pending = await jobsCol().find({ portalId, match: { $exists: false } }).toArray();
+    const pending = await jobsCol()
+      .find({ portalId, match: { $exists: false }, backfilled: { $ne: true } })
+      .toArray();
     await this.judgeJobs(pending, false);
   }
 
