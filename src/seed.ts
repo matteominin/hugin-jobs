@@ -30,7 +30,7 @@ export const portalsSeed: Portal[] = [
     name: 'Amazon',
     enabled: true,
     intervalSeconds: 60 * 20,
-    source: 'amazon',
+    source: 'amazon'
   },
   {
     // lifeatspotify.com engineering category, intern-titled roles. List-only (no
@@ -38,7 +38,7 @@ export const portalsSeed: Portal[] = [
     name: 'Spotify',
     enabled: true,
     intervalSeconds: 60 * 20,
-    source: 'spotify',
+    source: 'spotify'
   },
   {
     // Uber careers POST search (query=intern) across European country codes.
@@ -46,7 +46,7 @@ export const portalsSeed: Portal[] = [
     name: 'Uber',
     enabled: true,
     intervalSeconds: 60 * 20,
-    source: 'uber',
+    source: 'uber'
   },
   {
     // Bolt (bolt.eu) custom Next.js careers page, intern-titled roles in Europe
@@ -54,7 +54,7 @@ export const portalsSeed: Portal[] = [
     name: 'Bolt',
     enabled: true,
     intervalSeconds: 60 * 20,
-    source: 'bolt',
+    source: 'bolt'
   },
   {
     // Stripe's Greenhouse board (full descriptions inline), prefiltered to
@@ -62,7 +62,7 @@ export const portalsSeed: Portal[] = [
     name: 'Stripe',
     enabled: true,
     intervalSeconds: 60 * 20,
-    source: 'stripe',
+    source: 'stripe'
   },
   {
     // Microsoft pcsx search (filter_seniority=Intern, newest-first), Europe by
@@ -70,111 +70,72 @@ export const portalsSeed: Portal[] = [
     name: 'Microsoft',
     enabled: true,
     intervalSeconds: 60 * 20,
-    source: 'microsoft',
+    source: 'microsoft'
   },
   {
     // Google Careers embeds full job records in the search results page. Track
     // Bachelor/Master-accessible technical student roles, excluding high-school
     // apprenticeship, STEP, gReach, PhD-only, postdoc and senior/staff tracks.
-    name: 'Google (EU student technical roles)',
+    name: 'Google',
     enabled: true,
     intervalSeconds: 60 * 20,
-    source: 'google',
-    promptOverride:
-      'For Google, accept Bachelor/Master-accessible graduate, intern, SWE intern, ' +
-      'research intern, research engineering intern, and Student Researcher BS/MS roles. ' +
-      'Reject apprenticeships, STEP, postdoc, PhD-only, gReach/restricted-program, senior, ' +
-      'staff, manager/director, and non-technical roles.',
+    source: 'google'
   },
   {
     // Google DeepMind's own Greenhouse board. Keep only explicit student/intern
     // or graduate technical roles; generic full-time research roles are excluded
     // before the LLM unless they are clearly student-level.
-    name: 'Google DeepMind (EU student technical roles)',
+    name: 'Google DeepMind',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'deepmind',
-    company: 'Google DeepMind',
-    promptOverride:
-      'For Google DeepMind, accept only explicitly DeepMind-branded Bachelor/Master-accessible ' +
-      'graduate, intern, SWE intern, research intern, research engineering intern, or student ' +
-      'research roles. Reject generic Google Student Researcher roles unless the title explicitly ' +
-      'says DeepMind. Reject apprenticeships, STEP, postdoc, PhD-only, senior/staff, manager/director, ' +
-      'and non-technical roles.',
+    company: 'Google DeepMind'
   },
   {
     // Qualcomm's careers.qualcomm.com Eightfold API. Track Europe-based
     // technical internships, working-student roles, and graduate SWE/research
     // roles; descriptions come from the position_details endpoint.
-    name: 'Qualcomm (EU student technical roles)',
+    name: 'Qualcomm',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'qualcomm',
-    company: 'Qualcomm',
-    promptOverride:
-      'For Qualcomm, treat this portal-specific role-level rule as the applicable criterion: ' +
-      'accept Bachelor/Master-accessible graduate, intern, working-student, SWE intern, research ' +
-      'intern, research engineering intern, AI/ML intern, and technical engineering student roles ' +
-      'in Europe. Reject PhD-only roles, postdoc, senior/staff/lead, manager/director, sales, ' +
-      'marketing, business development, operations, HR, legal, and other non-technical roles.',
+    company: 'Qualcomm'
   },
   {
     // Apple Jobs public search/detail endpoints. Search is noisy, so the source
     // scans bounded Europe location buckets plus student technical keywords and
     // filters obvious non-student/non-technical roles before the LLM.
-    name: 'Apple (EU student technical roles)',
+    name: 'Apple',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'apple',
-    company: 'Apple',
-    promptOverride:
-      'For Apple, treat this portal-specific role-level rule as the applicable criterion: ' +
-      'accept Bachelor/Master-accessible graduate, intern, working-student, SWE intern, ' +
-      'research intern, AI/ML intern, and technical engineering student roles in Europe. ' +
-      'Reject PhD-only internships, postdoc, senior/staff/lead, manager/director, Apple Retail, ' +
-      'specialist/expert/store roles, sales, marketing, business, operations, HR, legal, finance, ' +
-      'and other non-technical roles.',
+    company: 'Apple'
   },
   {
     // Databricks Greenhouse board. The live board is large and mostly full-time
     // senior/sales/solutions roles, so the source keeps only explicit
     // student-level technical titles in Europe before LLM judging.
-    name: 'Databricks (EU student technical roles)',
+    name: 'Databricks',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'databricks',
-    company: 'Databricks',
-    promptOverride:
-      'For Databricks, accept only explicit Bachelor/Master-accessible intern, internship, ' +
-      'working-student, new-grad, graduate, SWE intern, research intern, AI/ML intern, or ' +
-      'technical engineering student roles in Europe. Reject PhD-only internships, postdoc, ' +
-      'senior/staff/principal/lead, manager/director, full-time ordinary software roles unless ' +
-      'clearly new-grad/early-career, solutions architect, pre-sales/presales, field engineering, ' +
-      'sales, marketing, business development, operations, recruiting, legal, finance, and other ' +
-      'non-target roles.',
+    company: 'Databricks'
   },
   {
     // NVIDIA Workday CXS API. Discover Workday facet IDs at runtime, restrict
     // search to Europe country facets, then keep explicit intern/new-grad/
     // working-student technical roles before LLM judging.
-    name: 'NVIDIA (EU student technical roles)',
+    name: 'NVIDIA',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'nvidia',
-    company: 'NVIDIA',
-    promptOverride:
-      'For NVIDIA, accept only Bachelor/Master-accessible intern, internship, working-student, ' +
-      'new-college-graduate, new-grad, graduate, SWE intern, research intern, AI/ML intern, ' +
-      'systems/software/hardware/verification engineering student roles in Europe. Reject PhD-only ' +
-      'internships, postdoc, senior/staff/principal/lead, manager/director, architect/solutions ' +
-      'architect, sales, marketing, business development, program/product management, operations, ' +
-      'recruiting, legal, finance, HR, facilities, and other non-target roles.',
+    company: 'NVIDIA'
   },
   {
     // Snowflake's Ashby board (full descriptions inline). The board skews senior
     // and go-to-market and posts many non-technical interns (SDR, marketing,
     // comms), so the source keeps only technical student titles in Europe.
-    name: 'Snowflake (EU student technical roles)',
+    name: 'Snowflake',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'snowflake',
@@ -184,27 +145,21 @@ export const portalsSeed: Portal[] = [
     // OpenAI's Ashby board (full descriptions inline). Europe is ~60 roles but
     // internships/residencies are posted rarely, so this portal is often empty —
     // that is expected, not a fetch failure.
-    name: 'OpenAI (EU student technical roles)',
+    name: 'OpenAI',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'openai',
-    company: 'OpenAI',
-    promptOverride:
-      'An OpenAI "Residency" is an early-career track equivalent to an internship — treat it as ' +
-      'satisfying the internship requirement when it is open to Bachelor/Master graduates.',
+    company: 'OpenAI'
   },
   {
     // Palantir's Lever board (full descriptions inline, real alpha-2 country per
     // posting). Keeps intern-commitment or intern-titled technical roles in
     // Europe; Deployment Strategist is left to the LLM to judge.
-    name: 'Palantir (EU student technical roles)',
+    name: 'Palantir',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'palantir',
-    company: 'Palantir',
-    promptOverride:
-      'Palantir "Deployment Strategist" roles are only a fit when the listing describes genuine ' +
-      'software or technical engineering work rather than a business/analyst role.',
+    company: 'Palantir'
   },
 ];
 
