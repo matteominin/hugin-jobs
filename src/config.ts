@@ -1,6 +1,7 @@
 import 'dotenv/config';
 
 export const config = {
+  port: Math.max(1, Number(process.env.PORT ?? '3000') || 3000),
   mongoUri: process.env.MONGODB_URI ?? 'mongodb://localhost:27018/?directConnection=true',
   mongoDb: process.env.MONGODB_DB ?? 'hugin_jobs',
   deepseekApiKey: process.env.DEEPSEEK_API_KEY ?? '',
