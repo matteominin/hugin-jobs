@@ -5,30 +5,61 @@ import { JobRunner } from './runner.js';
 import { portalsSeed } from './seed.js';
 import { getSource } from './sources/index.js';
 import type { Portal } from './types.js';
+import { Semaphore } from './util/semaphore.js';
 
 let stopped = false;
 const timers = new Set<NodeJS.Timeout>();
 
 /**
- * Self-rescheduling loop per portal: run, then schedule the next run only after
- * the current one finishes, so cycles never overlap. Errors are caught so one
- * portal failing never stops the others.
+ * Every portal run in the process goes through here, so at most
+ * `config.portalConcurrency` cycles are ever in flight. Each portal keeps its
+ * own interval; the gate only decides who gets to run when two come due at once.
  */
-function schedulePortal(portal: Portal): void {
-  const runner = new JobRunner(portal, getSource(portal));
-  const loop = async () => {
+const gate = new Semaphore(config.portalConcurrency);
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    const timer = setTimeout(resolve, ms);
+    timers.add(timer);
+  });
+}
+
+/** Run one cycle through the gate, logging the wait if it had to queue. */
+async function runGated(portal: Portal, runner: JobRunner): Promise<void> {
+  const tag = `[${portal.name}]`;
+  if (gate.queued > 0) console.log(`${tag} queued behind ${gate.queued} portal(s)`);
+  await gate.run(async () => {
     if (stopped) return;
     try {
       await runner.run();
     } catch (err) {
-      console.error(`[${portal.name}] run failed:`, err instanceof Error ? err.message : err);
+      console.error(`${tag} run failed:`, err instanceof Error ? err.message : err);
     }
+  });
+}
+
+/**
+ * Self-rescheduling loop per portal: run, then schedule the next run only after
+ * the current one finishes, so cycles never overlap. Errors are caught so one
+ * portal failing never stops the others.
+ *
+ * The interval is measured from the end of a cycle, so time spent waiting on the
+ * gate delays the next run rather than stacking up behind it.
+ */
+function schedulePortal(portal: Portal, staggerMs: number): void {
+  const runner = new JobRunner(portal, getSource(portal));
+  const loop = async () => {
+    if (stopped) return;
+    await runGated(portal, runner);
     // stop rescheduling a portal that auto-disabled after repeated failures
     if (stopped || runner.disabled) return;
     const timer = setTimeout(loop, portal.intervalSeconds * 1000);
     timers.add(timer);
   };
-  void loop();
+  void (async () => {
+    if (staggerMs > 0) await sleep(staggerMs);
+    await loop();
+  })();
 }
 
 export async function startScheduler(): Promise<void> {
@@ -39,24 +70,20 @@ export async function startScheduler(): Promise<void> {
   }
   if (config.runOnce) {
     console.log(
-      `[scheduler] running ${enabled.length} portal(s) once${config.dryRun ? ' (dry-run)' : ''}`,
+      `[scheduler] running ${enabled.length} portal(s) once, ${config.portalConcurrency} at a time${config.dryRun ? ' (dry-run)' : ''}`,
     );
-    const settled = await Promise.allSettled(
-      enabled.map((portal) => new JobRunner(portal, getSource(portal)).run()),
+    // no stagger here: the gate already serialises them and a one-shot run
+    // should not sit idle waiting
+    await Promise.all(
+      enabled.map((portal) => runGated(portal, new JobRunner(portal, getSource(portal)))),
     );
-    for (let i = 0; i < settled.length; i++) {
-      const result = settled[i];
-      if (result.status === 'rejected') {
-        console.error(
-          `[${enabled[i].name}] run failed:`,
-          result.reason instanceof Error ? result.reason.message : result.reason,
-        );
-      }
-    }
     return;
   }
-  console.log(`[scheduler] starting ${enabled.length} portal(s)`);
-  for (const portal of enabled) schedulePortal(portal);
+  console.log(
+    `[scheduler] starting ${enabled.length} portal(s), ${config.portalConcurrency} at a time`,
+  );
+  const step = enabled.length > 1 ? config.portalStaggerMs : 0;
+  enabled.forEach((portal, i) => schedulePortal(portal, i * step));
 }
 
 async function loadEnabledPortals(): Promise<Portal[]> {
