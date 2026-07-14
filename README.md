@@ -9,6 +9,17 @@ A long-running service that periodically fetches each job poster's listings, and
 
 A **Source** is a small class that produces a portal's `RawJob[]` — it fetches from the poster's API/site however it needs (prefiltering, paging, joining two APIs, scraping) and shapes the result. Every poster has one; see [Sources](#sources). A portal document just names the source and holds per-portal knobs (interval, prompt override, source options).
 
+## Telegram commands
+
+The bot also listens for commands (via `getUpdates` long-polling, so no public URL or webhook is
+needed). Only chats listed in `TELEGRAM_CHAT_IDS` are answered; anything else is logged and
+ignored. The listener is off in dry-run and `HUGIN_RUN_ONCE` modes.
+
+| Command | Does |
+| --- | --- |
+| `/status`, `/ping` | uptime, job counts, and each enabled portal's last run / install / failure state |
+| `/help` | lists the commands |
+
 ## Setup
 
 ```bash
