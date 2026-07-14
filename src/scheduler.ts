@@ -17,13 +17,6 @@ const timers = new Set<NodeJS.Timeout>();
  */
 const gate = new Semaphore(config.portalConcurrency);
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    const timer = setTimeout(resolve, ms);
-    timers.add(timer);
-  });
-}
-
 /** Run one cycle through the gate, logging the wait if it had to queue. */
 async function runGated(portal: Portal, runner: JobRunner): Promise<void> {
   const tag = `[${portal.name}]`;
@@ -46,7 +39,7 @@ async function runGated(portal: Portal, runner: JobRunner): Promise<void> {
  * The interval is measured from the end of a cycle, so time spent waiting on the
  * gate delays the next run rather than stacking up behind it.
  */
-function schedulePortal(portal: Portal, staggerMs: number): void {
+function schedulePortal(portal: Portal): void {
   const runner = new JobRunner(portal, getSource(portal));
   const loop = async () => {
     if (stopped) return;
@@ -56,10 +49,7 @@ function schedulePortal(portal: Portal, staggerMs: number): void {
     const timer = setTimeout(loop, portal.intervalSeconds * 1000);
     timers.add(timer);
   };
-  void (async () => {
-    if (staggerMs > 0) await sleep(staggerMs);
-    await loop();
-  })();
+  void loop();
 }
 
 export async function startScheduler(): Promise<void> {
@@ -72,8 +62,6 @@ export async function startScheduler(): Promise<void> {
     console.log(
       `[scheduler] running ${enabled.length} portal(s) once, ${config.portalConcurrency} at a time${config.dryRun ? ' (dry-run)' : ''}`,
     );
-    // no stagger here: the gate already serialises them and a one-shot run
-    // should not sit idle waiting
     await Promise.all(
       enabled.map((portal) => runGated(portal, new JobRunner(portal, getSource(portal)))),
     );
@@ -82,8 +70,7 @@ export async function startScheduler(): Promise<void> {
   console.log(
     `[scheduler] starting ${enabled.length} portal(s), ${config.portalConcurrency} at a time`,
   );
-  const step = enabled.length > 1 ? config.portalStaggerMs : 0;
-  enabled.forEach((portal, i) => schedulePortal(portal, i * step));
+  for (const portal of enabled) schedulePortal(portal);
 }
 
 async function loadEnabledPortals(): Promise<Portal[]> {

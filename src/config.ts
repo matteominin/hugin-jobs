@@ -25,11 +25,6 @@ export const config = {
    * fans out LLM calls, so overlapping them is what actually spikes the box.
    */
   portalConcurrency: Math.max(1, Number(process.env.PORTAL_CONCURRENCY ?? '1') || 1),
-  /**
-   * spread the first run of each portal over this many ms, so a restart doesn't
-   * queue every portal at t=0 and then run them back-to-back.
-   */
-  portalStaggerMs: Math.max(0, Number(process.env.PORTAL_STAGGER_MS ?? '15000') || 0),
   /** per-request HTTP timeout in ms, so a stalled fetch can't hang a portal */
   httpTimeoutMs: Math.max(1000, Number(process.env.HTTP_TIMEOUT_MS ?? '30000') || 30000),
   /** consecutive fetch failures before a portal is auto-disabled */
