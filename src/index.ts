@@ -1,6 +1,7 @@
 import { config } from './config.js';
 import { close, connect } from './db.js';
 import { startScheduler, stopScheduler } from './scheduler.js';
+import { startServer } from './server.js';
 
 async function main(): Promise<void> {
   await connect();
@@ -10,9 +11,12 @@ async function main(): Promise<void> {
     return;
   }
 
+  const server = startServer();
+
   const shutdown = async (signal: string) => {
     console.log(`\n[main] ${signal} received, shutting down`);
     stopScheduler();
+    server.close();
     await close();
     process.exit(0);
   };

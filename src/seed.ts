@@ -27,7 +27,7 @@ export const portalsSeed: Portal[] = [
     // amazon.jobs public search API: base_query=intern + European country codes.
     // Full descriptions inline; newest-first crawl that stops at the first job
     // already stored for this portal. See src/sources/amazon.ts.
-    name: 'Amazon (EU interns)',
+    name: 'Amazon',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'amazon',
@@ -35,7 +35,7 @@ export const portalsSeed: Portal[] = [
   {
     // lifeatspotify.com engineering category, intern-titled roles. List-only (no
     // descriptions); the LLM judge applies the Europe rule. See src/sources/spotify.ts.
-    name: 'Spotify (engineering interns)',
+    name: 'Spotify',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'spotify',
@@ -43,7 +43,7 @@ export const portalsSeed: Portal[] = [
   {
     // Uber careers POST search (query=intern) across European country codes.
     // See src/sources/uber.ts.
-    name: 'Uber (EU interns)',
+    name: 'Uber',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'uber',
@@ -51,7 +51,7 @@ export const portalsSeed: Portal[] = [
   {
     // Bolt (bolt.eu) custom Next.js careers page, intern-titled roles in Europe
     // scraped from the embedded RSC payload. See src/sources/bolt.ts.
-    name: 'Bolt (EU interns)',
+    name: 'Bolt',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'bolt',
@@ -59,7 +59,7 @@ export const portalsSeed: Portal[] = [
   {
     // Stripe's Greenhouse board (full descriptions inline), prefiltered to
     // intern-titled roles; the LLM judge applies the Europe rule. See src/sources/stripe.ts.
-    name: 'Stripe (interns)',
+    name: 'Stripe',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'stripe',
@@ -67,7 +67,7 @@ export const portalsSeed: Portal[] = [
   {
     // Microsoft pcsx search (filter_seniority=Intern, newest-first), Europe by
     // country code, paged until an already-seen job. See src/sources/microsoft.ts.
-    name: 'Microsoft (EU interns)',
+    name: 'Microsoft',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'microsoft',
