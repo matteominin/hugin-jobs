@@ -215,8 +215,18 @@ async function main(): Promise<void> {
   console.log('[seed] settings upserted');
 
   for (const portal of portalsSeed) {
-    await portalsCol().updateOne({ name: portal.name }, { $set: portal }, { upsert: true });
-    console.log(`[seed] portal "${portal.name}" upserted`);
+    // status is $setOnInsert, never $set: a new portal starts in `install` so its
+    // back-catalogue is only recorded as a baseline, while re-seeding an existing
+    // portal must not knock it back into install and swallow its pending jobs.
+    const { status, ...fields } = portal;
+    const res = await portalsCol().updateOne(
+      { name: portal.name },
+      { $set: fields, $setOnInsert: { status: status ?? 'install' } },
+      { upsert: true },
+    );
+    console.log(
+      `[seed] portal "${portal.name}" ${res.upsertedId ? 'inserted (status=install)' : 'updated'}`,
+    );
   }
 
   await close();
