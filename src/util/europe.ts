@@ -36,3 +36,22 @@ export const EUROPE_COUNTRY_NAMES = new Set([
 export function isEuropeCountryName(name: string | undefined | null): boolean {
   return name != null && EUROPE_COUNTRY_NAMES.has(name.trim().toLowerCase());
 }
+
+/** European countries and their main tech hubs, as they appear in free text. */
+const EUROPE_LOCATION_TEXT =
+  /\b(united kingdom|uk|england|london|cambridge|france|paris|germany|berlin|munich|netherlands|amsterdam|ireland|dublin|switzerland|zurich|zürich|italy|milan|spain|madrid|barcelona|poland|warsaw|sweden|stockholm|denmark|copenhagen|norway|oslo|finland|helsinki|austria|vienna|belgium|brussels|portugal|lisbon|czech|prague|romania|bucharest|hungary|budapest)\b/i;
+/** Non-European countries and hubs, used to reject what the list above misses. */
+const NON_EUROPE_LOCATION_TEXT =
+  /\b(us|usa|united states|canada|india|singapore|japan|australia|brazil|mexico|korea|china|san francisco|california|mountain view|new york|seattle|bellevue|kirkland|los angeles|washington|texas|austin)\b/i;
+
+/**
+ * Best-effort Europe check for a free-text location ("Berlin, Germany") — for
+ * feeds that give no country code. A known European hub wins; anything else is
+ * kept unless it names a non-European one, so an unrecognised or missing
+ * location reaches the LLM rather than being dropped silently.
+ */
+export function isEuropeLocationText(location: string | undefined | null): boolean {
+  if (!location) return true;
+  if (EUROPE_LOCATION_TEXT.test(location)) return true;
+  return !NON_EUROPE_LOCATION_TEXT.test(location);
+}
