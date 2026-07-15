@@ -84,8 +84,22 @@ export interface Job extends RawJob {
   createdAt: Date;
 }
 
+/**
+ * The daily window in which portals are allowed to run, as [startHour, endHour)
+ * local time in `timezone`. `endHour: 24` is midnight; a window that ends before
+ * it starts wraps midnight; start === end means always on.
+ */
+export interface ActiveHours {
+  startHour: number;
+  endHour: number;
+  /** IANA name, e.g. 'Europe/Rome' — the hours are local to this zone */
+  timezone: string;
+}
+
 export interface Settings {
   _id?: ObjectId;
   globalPrompt: string;
   positionDescription: string;
+  /** when portals may run; defaults to 06:00–24:00 Europe/Rome when absent */
+  activeHours?: ActiveHours;
 }

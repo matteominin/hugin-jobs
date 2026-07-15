@@ -67,9 +67,40 @@ name substring.
 
 ## Data model
 
-- `settings` — single doc with the `globalPrompt` and `positionDescription` to match against.
+- `settings` — single doc with the `globalPrompt` and `positionDescription` to match against, plus the `activeHours` window (see [Active hours](#active-hours)).
 - `portals` — one doc per job poster: `{ name, enabled, status?, intervalSeconds, source, sourceOptions?, company?, promptOverride? }`.
 - `jobs` — jobs produced by a source, deduped per portal, with the LLM match verdict, enrichment, per-job LLM token usage (`usage.inputTokens` / `outputTokens` / `totalTokens`) and notification state. Jobs recorded by an `install` cycle carry `backfilled: true` and are never judged or notified.
+
+## Active hours
+
+Portals only run inside a daily window, configured in the `settings` document — there is no point
+fetching, judging and pushing Telegram messages at 4am. The default is **06:00 to midnight, Rome
+time**:
+
+```js
+{
+  activeHours: {
+    startHour: 6,           // inclusive
+    endHour: 24,            // exclusive; 24 = midnight
+    timezone: "Europe/Rome" // IANA name; the hours are local to this zone (DST-aware)
+  }
+}
+```
+
+Change it live — the scheduler re-reads the window before every cycle, so no restart is needed:
+
+```js
+db.settings.updateOne({}, { $set: { "activeHours.startHour": 8 } })
+```
+
+Outside the window a cycle is skipped entirely (no fetch, no LLM call, no notification) and the
+portal sleeps until the window reopens; nothing is queued up to fire at 06:00. A window whose
+`endHour` is *before* its `startHour` wraps midnight (`22`→`6` = overnight only), and
+`startHour === endHour` means always on. Invalid hours or an unknown timezone are logged and fall
+back to the defaults rather than stopping the service.
+
+`npm run seed` writes `activeHours` **only when it inserts** the settings doc, so a window tuned
+in the DB survives a re-seed. Dry-runs ignore the window entirely — they never write or notify.
 
 ## Portal document
 

@@ -1,8 +1,10 @@
 import { pathToFileURL } from 'node:url';
 import { close, connect, portals as portalsCol, settings as settingsCol } from './db.js';
 import type { Portal, Settings } from './types.js';
+import { DEFAULT_ACTIVE_HOURS } from './util/activeHours.js';
 
 export const settingsSeed: Settings = {
+  activeHours: DEFAULT_ACTIVE_HOURS,
   globalPrompt:
     'You are a job-matching assistant. Given a candidate position description and a job listing, ' +
     'decide whether the listing is a genuine fit. Be strict and only mark suitable when ALL hard ' +
@@ -166,7 +168,14 @@ export const portalsSeed: Portal[] = [
 async function main(): Promise<void> {
   await connect();
 
-  await settingsCol().updateOne({}, { $set: settingsSeed }, { upsert: true });
+  // activeHours is $setOnInsert for the same reason as a portal's status: it is a
+  // knob meant to be tuned in the DB, and re-seeding must not reset it.
+  const { activeHours, ...settingsFields } = settingsSeed;
+  await settingsCol().updateOne(
+    {},
+    { $set: settingsFields, $setOnInsert: { activeHours } },
+    { upsert: true },
+  );
   console.log('[seed] settings upserted');
 
   for (const portal of portalsSeed) {
