@@ -1,7 +1,7 @@
 import { pathToFileURL } from 'node:url';
 import { close, connect, portals as portalsCol, settings as settingsCol } from './db.js';
 import type { Portal, Settings } from './types.js';
-import { DEFAULT_ACTIVE_HOURS } from './util/activeHours.js';
+import { DEFAULT_ACTIVE_HOURS, describeActiveHours } from './util/activeHours.js';
 
 export const settingsSeed: Settings = {
   activeHours: DEFAULT_ACTIVE_HOURS,
@@ -168,15 +168,19 @@ export const portalsSeed: Portal[] = [
 async function main(): Promise<void> {
   await connect();
 
-  // activeHours is $setOnInsert for the same reason as a portal's status: it is a
-  // knob meant to be tuned in the DB, and re-seeding must not reset it.
+  // activeHours is never $set, for the same reason as a portal's status: it is a
+  // knob meant to be tuned in the DB, and re-seeding must not reset it. It is
+  // filled in only where it is missing — $setOnInsert alone would leave the
+  // settings doc that predates the field without a window forever.
   const { activeHours, ...settingsFields } = settingsSeed;
-  await settingsCol().updateOne(
-    {},
-    { $set: settingsFields, $setOnInsert: { activeHours } },
-    { upsert: true },
+  await settingsCol().updateOne({}, { $set: settingsFields }, { upsert: true });
+  const backfilled = await settingsCol().updateOne(
+    { activeHours: { $exists: false } },
+    { $set: { activeHours } },
   );
-  console.log('[seed] settings upserted');
+  console.log(
+    `[seed] settings upserted${backfilled.modifiedCount ? `, activeHours defaulted to ${describeActiveHours(activeHours!)}` : ''}`,
+  );
 
   for (const portal of portalsSeed) {
     // status is $setOnInsert, never $set: a new portal starts in `install` so its

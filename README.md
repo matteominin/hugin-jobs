@@ -99,8 +99,8 @@ portal sleeps until the window reopens; nothing is queued up to fire at 06:00. A
 `startHour === endHour` means always on. Invalid hours or an unknown timezone are logged and fall
 back to the defaults rather than stopping the service.
 
-`npm run seed` writes `activeHours` **only when it inserts** the settings doc, so a window tuned
-in the DB survives a re-seed. Dry-runs ignore the window entirely — they never write or notify.
+`npm run seed` writes `activeHours` **only when the field is missing**, so a window tuned in the
+DB survives a re-seed. Dry-runs ignore the window entirely — they never write or notify.
 
 ## Portal document
 
