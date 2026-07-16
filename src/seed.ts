@@ -164,6 +164,16 @@ export const portalsSeed: Portal[] = [
     company: 'Cloudflare'
   },
   {
+    // Netflix's Eightfold apply API (explore.jobs.netflix.net). One "intern"
+    // token query is the whole sweep; intern roles are almost all US, so 0
+    // jobs in Europe is expected, not a fetch failure.
+    name: 'Netflix',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'netflix',
+    company: 'Netflix'
+  },
+  {
     // Palantir's Lever board (full descriptions inline, real alpha-2 country per
     // posting). Keeps intern-commitment or intern-titled technical roles in
     // Europe; Deployment Strategist is left to the LLM to judge.

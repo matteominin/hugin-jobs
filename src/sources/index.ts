@@ -8,6 +8,7 @@ import { DatabricksSource } from './databricks.js';
 import { DeepMindSource } from './deepmind.js';
 import { GoogleSource } from './google.js';
 import { MicrosoftSource } from './microsoft.js';
+import { NetflixSource } from './netflix.js';
 import { NvidiaSource } from './nvidia.js';
 import { OpenAiSource } from './openai.js';
 import { PalantirSource } from './palantir.js';
@@ -42,6 +43,7 @@ const registry: Record<string, (portal: Portal) => Source> = {
   snowflake: (portal) => new SnowflakeSource(portal),
   openai: (portal) => new OpenAiSource(portal),
   palantir: (portal) => new PalantirSource(portal),
+  netflix: (portal) => new NetflixSource(portal),
 };
 
 /** Resolve the code source for a portal by its `source` key. */
