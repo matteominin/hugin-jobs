@@ -205,6 +205,16 @@ export const portalsSeed: Portal[] = [
     company: 'Airbnb'
   },
   {
+    // Discord's Greenhouse board (whole board + descriptions in 1 request).
+    // ~50 roles, overwhelmingly senior and US-only; 0 EU student matches is
+    // the expected steady state — the portal exists to catch future postings.
+    name: 'Discord (EU student technical roles)',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'discord',
+    company: 'Discord'
+  },
+  {
     // Palantir's Lever board (full descriptions inline, real alpha-2 country per
     // posting). Keeps intern-commitment or intern-titled technical roles in
     // Europe; Deployment Strategist is left to the LLM to judge.

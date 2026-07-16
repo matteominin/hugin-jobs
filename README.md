@@ -65,6 +65,8 @@ npm run dry-run:sources:adobe     # test only Adobe, no LLM calls
 npm run dry-run:adobe             # test only Adobe with LLM judging
 npm run dry-run:sources:airbnb    # test only Airbnb, no LLM calls
 npm run dry-run:airbnb            # test only Airbnb with LLM judging
+npm run dry-run:sources:discord   # test only Discord, no LLM calls
+npm run dry-run:discord           # test only Discord with LLM judging
 ```
 
 Both commands run enabled portals once and exit. Dry-run still reads MongoDB settings, portals
