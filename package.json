@@ -29,6 +29,8 @@
     "dry-run:sources:netflix": "HUGIN_PORTAL=netflix HUGIN_DRY_RUN=1 HUGIN_DRY_RUN_SKIP_LLM=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
     "dry-run:asml": "HUGIN_PORTAL=asml HUGIN_DRY_RUN=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
     "dry-run:sources:asml": "HUGIN_PORTAL=asml HUGIN_DRY_RUN=1 HUGIN_DRY_RUN_SKIP_LLM=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
+    "dry-run:adobe": "HUGIN_PORTAL=adobe HUGIN_DRY_RUN=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
+    "dry-run:sources:adobe": "HUGIN_PORTAL=adobe HUGIN_DRY_RUN=1 HUGIN_DRY_RUN_SKIP_LLM=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
     "start": "node dist/index.js",
     "build": "tsc",
     "seed": "tsx src/seed.ts"

@@ -185,6 +185,17 @@ export const portalsSeed: Portal[] = [
     company: 'ASML'
   },
   {
+    // Adobe's Workday CXS sites (external_experienced + seasonal
+    // external_university). Europe locationCountry facet crossed with the
+    // Intern worker subtype, NVIDIA-style; a role mis-tagged Regular is the
+    // accepted trade-off.
+    name: 'Adobe',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'adobe',
+    company: 'Adobe'
+  },
+  {
     // Palantir's Lever board (full descriptions inline, real alpha-2 country per
     // posting). Keeps intern-commitment or intern-titled technical roles in
     // Europe; Deployment Strategist is left to the LLM to judge.

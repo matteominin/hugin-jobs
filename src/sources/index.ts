@@ -1,4 +1,5 @@
 import type { Portal } from '../types.js';
+import { AdobeSource } from './adobe.js';
 import { AmazonSource } from './amazon.js';
 import { AppleSource } from './apple.js';
 import { AsmlSource } from './asml.js';
@@ -46,6 +47,7 @@ const registry: Record<string, (portal: Portal) => Source> = {
   palantir: (portal) => new PalantirSource(portal),
   netflix: (portal) => new NetflixSource(portal),
   asml: (portal) => new AsmlSource(portal),
+  adobe: (portal) => new AdobeSource(portal),
 };
 
 /** Resolve the code source for a portal by its `source` key. */
