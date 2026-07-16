@@ -16,6 +16,7 @@ export interface GreenhouseJob {
   content?: string;
   company_name?: string;
   location?: { name?: string };
+  offices?: { name?: string }[];
   metadata?: GreenhouseMetadata[];
 }
 
@@ -45,11 +46,20 @@ export abstract class GreenhouseSource extends BaseSource {
           ({
             title: job.title,
             url: job.absolute_url,
-            location: job.location?.name,
+            location: this.locationText(job),
             description: htmlToText(this.descriptionText(job)),
             company: job.company_name ?? this.companyName,
           }) satisfies RawJob,
       );
+  }
+
+  /**
+   * The job's location string. Defaults to Greenhouse's `location.name`;
+   * boards that fill it with a work mode instead of a place (e.g. Cloudflare's
+   * "In-Office") override this to read `offices` instead.
+   */
+  protected locationText(job: GreenhouseJob): string | undefined {
+    return job.location?.name;
   }
 
   /** The listing body plus any board metadata fields. */
