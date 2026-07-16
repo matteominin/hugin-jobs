@@ -196,6 +196,15 @@ export const portalsSeed: Portal[] = [
     company: 'Adobe'
   },
   {
+    // Airbnb's Greenhouse board (one request, ~200 mostly-senior roles); title-level
+    // intern+technical prefilter because the rare interns are often non-technical.
+    name: 'Airbnb (EU intern technical roles)',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'airbnb',
+    company: 'Airbnb'
+  },
+  {
     // Palantir's Lever board (full descriptions inline, real alpha-2 country per
     // posting). Keeps intern-commitment or intern-titled technical roles in
     // Europe; Deployment Strategist is left to the LLM to judge.
