@@ -55,6 +55,8 @@ npm run dry-run:sources:openai    # test only OpenAI, no LLM calls
 npm run dry-run:openai            # test only OpenAI with LLM judging
 npm run dry-run:sources:palantir  # test only Palantir, no LLM calls
 npm run dry-run:palantir          # test only Palantir with LLM judging
+npm run dry-run:sources:cloudflare  # test only Cloudflare, no LLM calls
+npm run dry-run:cloudflare          # test only Cloudflare with LLM judging
 ```
 
 Both commands run enabled portals once and exit. Dry-run still reads MongoDB settings, portals

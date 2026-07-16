@@ -3,6 +3,7 @@ import { AmazonSource } from './amazon.js';
 import { AppleSource } from './apple.js';
 import type { Source } from './base.js';
 import { BoltSource } from './bolt.js';
+import { CloudflareSource } from './cloudflare.js';
 import { DatabricksSource } from './databricks.js';
 import { DeepMindSource } from './deepmind.js';
 import { GoogleSource } from './google.js';
@@ -30,6 +31,7 @@ const registry: Record<string, (portal: Portal) => Source> = {
   uber: (portal) => new UberSource(portal),
   bolt: (portal) => new BoltSource(portal),
   stripe: (portal) => new StripeSource(portal),
+  cloudflare: (portal) => new CloudflareSource(portal),
   microsoft: (portal) => new MicrosoftSource(portal),
   google: (portal) => new GoogleSource(portal),
   deepmind: (portal) => new DeepMindSource(portal),

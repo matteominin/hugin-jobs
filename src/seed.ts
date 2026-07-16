@@ -154,6 +154,16 @@ export const portalsSeed: Portal[] = [
     company: 'OpenAI'
   },
   {
+    // Cloudflare's Greenhouse board (full descriptions inline). location.name
+    // is a work mode ("In-Office"), so Europe is read from `offices`; intern
+    // titles skew go-to-market, so the technical-signal check is load-bearing.
+    name: 'Cloudflare',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'cloudflare',
+    company: 'Cloudflare'
+  },
+  {
     // Palantir's Lever board (full descriptions inline, real alpha-2 country per
     // posting). Keeps intern-commitment or intern-titled technical roles in
     // Europe; Deployment Strategist is left to the LLM to judge.

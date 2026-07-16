@@ -23,6 +23,8 @@
     "dry-run:sources:openai": "HUGIN_PORTAL=openai HUGIN_DRY_RUN=1 HUGIN_DRY_RUN_SKIP_LLM=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
     "dry-run:palantir": "HUGIN_PORTAL=palantir HUGIN_DRY_RUN=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
     "dry-run:sources:palantir": "HUGIN_PORTAL=palantir HUGIN_DRY_RUN=1 HUGIN_DRY_RUN_SKIP_LLM=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
+    "dry-run:cloudflare": "HUGIN_PORTAL=cloudflare HUGIN_DRY_RUN=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
+    "dry-run:sources:cloudflare": "HUGIN_PORTAL=cloudflare HUGIN_DRY_RUN=1 HUGIN_DRY_RUN_SKIP_LLM=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
     "start": "node dist/index.js",
     "build": "tsc",
     "seed": "tsx src/seed.ts"
