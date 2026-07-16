@@ -13,6 +13,7 @@ import { DiscordSource } from './discord.js';
 import { GoogleSource } from './google.js';
 import { MicrosoftSource } from './microsoft.js';
 import { NetflixSource } from './netflix.js';
+import { NotionSource } from './notion.js';
 import { NvidiaSource } from './nvidia.js';
 import { OpenAiSource } from './openai.js';
 import { PalantirSource } from './palantir.js';
@@ -52,6 +53,7 @@ const registry: Record<string, (portal: Portal) => Source> = {
   adobe: (portal) => new AdobeSource(portal),
   airbnb: (portal) => new AirbnbSource(portal),
   discord: (portal) => new DiscordSource(portal),
+  notion: (portal) => new NotionSource(portal),
 };
 
 /** Resolve the code source for a portal by its `source` key. */
