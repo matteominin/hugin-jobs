@@ -59,6 +59,8 @@ npm run dry-run:sources:cloudflare  # test only Cloudflare, no LLM calls
 npm run dry-run:cloudflare          # test only Cloudflare with LLM judging
 npm run dry-run:sources:netflix   # test only Netflix, no LLM calls
 npm run dry-run:netflix           # test only Netflix with LLM judging
+npm run dry-run:sources:asml      # test only ASML, no LLM calls
+npm run dry-run:asml              # test only ASML with LLM judging
 ```
 
 Both commands run enabled portals once and exit. Dry-run still reads MongoDB settings, portals

@@ -174,6 +174,17 @@ export const portalsSeed: Portal[] = [
     company: 'Netflix'
   },
   {
+    // ASML's Sitecore Discover search: one request filtered server-side to
+    // job_type=Internship, Europe by job_country name. The board is mostly
+    // hardware/physics internships — the LLM owns the software-vs-other call,
+    // the source only cuts obvious non-technical roles and apprenticeships.
+    name: 'ASML',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'asml',
+    company: 'ASML'
+  },
+  {
     // Palantir's Lever board (full descriptions inline, real alpha-2 country per
     // posting). Keeps intern-commitment or intern-titled technical roles in
     // Europe; Deployment Strategist is left to the LLM to judge.
