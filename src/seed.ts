@@ -26,67 +26,48 @@ export const settingsSeed: Settings = {
 
 export const portalsSeed: Portal[] = [
   {
-    // amazon.jobs public search API: base_query=intern + European country codes.
-    // Full descriptions inline; newest-first crawl that stops at the first job
-    // already stored for this portal. See src/sources/amazon.ts.
     name: 'Amazon',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'amazon'
   },
   {
-    // lifeatspotify.com engineering category, intern-titled roles. List-only (no
-    // descriptions); the LLM judge applies the Europe rule. See src/sources/spotify.ts.
     name: 'Spotify',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'spotify'
   },
   {
-    // Uber careers POST search (query=intern) across European country codes.
-    // See src/sources/uber.ts.
     name: 'Uber',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'uber'
   },
   {
-    // Bolt (bolt.eu) custom Next.js careers page, intern-titled roles in Europe
-    // scraped from the embedded RSC payload. See src/sources/bolt.ts.
     name: 'Bolt',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'bolt'
   },
   {
-    // Stripe's Greenhouse board (full descriptions inline), prefiltered to
-    // intern-titled roles; the LLM judge applies the Europe rule. See src/sources/stripe.ts.
     name: 'Stripe',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'stripe'
   },
   {
-    // Microsoft pcsx search (filter_seniority=Intern, newest-first), Europe by
-    // country code, paged until an already-seen job. See src/sources/microsoft.ts.
     name: 'Microsoft',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'microsoft'
   },
   {
-    // Google Careers embeds full job records in the search results page. Track
-    // Bachelor/Master-accessible technical student roles, excluding high-school
-    // apprenticeship, STEP, gReach, PhD-only, postdoc and senior/staff tracks.
     name: 'Google',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'google'
   },
   {
-    // Google DeepMind's own Greenhouse board. Keep only explicit student/intern
-    // or graduate technical roles; generic full-time research roles are excluded
-    // before the LLM unless they are clearly student-level.
     name: 'Google DeepMind',
     enabled: true,
     intervalSeconds: 60 * 20,
@@ -94,9 +75,6 @@ export const portalsSeed: Portal[] = [
     company: 'Google DeepMind'
   },
   {
-    // Qualcomm's careers.qualcomm.com Eightfold API. Track Europe-based
-    // technical internships, working-student roles, and graduate SWE/research
-    // roles; descriptions come from the position_details endpoint.
     name: 'Qualcomm',
     enabled: true,
     intervalSeconds: 60 * 20,
@@ -104,9 +82,6 @@ export const portalsSeed: Portal[] = [
     company: 'Qualcomm'
   },
   {
-    // Apple Jobs public search/detail endpoints. Search is noisy, so the source
-    // scans bounded Europe location buckets plus student technical keywords and
-    // filters obvious non-student/non-technical roles before the LLM.
     name: 'Apple',
     enabled: true,
     intervalSeconds: 60 * 20,
@@ -114,9 +89,6 @@ export const portalsSeed: Portal[] = [
     company: 'Apple'
   },
   {
-    // Databricks Greenhouse board. The live board is large and mostly full-time
-    // senior/sales/solutions roles, so the source keeps only explicit
-    // student-level technical titles in Europe before LLM judging.
     name: 'Databricks',
     enabled: true,
     intervalSeconds: 60 * 20,
@@ -124,9 +96,6 @@ export const portalsSeed: Portal[] = [
     company: 'Databricks'
   },
   {
-    // NVIDIA Workday CXS API. Discover Workday facet IDs at runtime, restrict
-    // search to Europe country facets, then keep explicit intern/new-grad/
-    // working-student technical roles before LLM judging.
     name: 'NVIDIA',
     enabled: true,
     intervalSeconds: 60 * 20,
@@ -134,9 +103,6 @@ export const portalsSeed: Portal[] = [
     company: 'NVIDIA'
   },
   {
-    // Snowflake's Ashby board (full descriptions inline). The board skews senior
-    // and go-to-market and posts many non-technical interns (SDR, marketing,
-    // comms), so the source keeps only technical student titles in Europe.
     name: 'Snowflake',
     enabled: true,
     intervalSeconds: 60 * 20,
@@ -144,9 +110,6 @@ export const portalsSeed: Portal[] = [
     company: 'Snowflake',
   },
   {
-    // OpenAI's Ashby board (full descriptions inline). Europe is ~60 roles but
-    // internships/residencies are posted rarely, so this portal is often empty —
-    // that is expected, not a fetch failure.
     name: 'OpenAI',
     enabled: true,
     intervalSeconds: 60 * 20,
@@ -154,9 +117,6 @@ export const portalsSeed: Portal[] = [
     company: 'OpenAI'
   },
   {
-    // Cloudflare's Greenhouse board (full descriptions inline). location.name
-    // is a work mode ("In-Office"), so Europe is read from `offices`; intern
-    // titles skew go-to-market, so the technical-signal check is load-bearing.
     name: 'Cloudflare',
     enabled: true,
     intervalSeconds: 60 * 20,
@@ -164,9 +124,6 @@ export const portalsSeed: Portal[] = [
     company: 'Cloudflare'
   },
   {
-    // Netflix's Eightfold apply API (explore.jobs.netflix.net). One "intern"
-    // token query is the whole sweep; intern roles are almost all US, so 0
-    // jobs in Europe is expected, not a fetch failure.
     name: 'Netflix',
     enabled: true,
     intervalSeconds: 60 * 20,
@@ -174,10 +131,6 @@ export const portalsSeed: Portal[] = [
     company: 'Netflix'
   },
   {
-    // ASML's Sitecore Discover search: one request filtered server-side to
-    // job_type=Internship, Europe by job_country name. The board is mostly
-    // hardware/physics internships — the LLM owns the software-vs-other call,
-    // the source only cuts obvious non-technical roles and apprenticeships.
     name: 'ASML',
     enabled: true,
     intervalSeconds: 60 * 20,
@@ -185,10 +138,6 @@ export const portalsSeed: Portal[] = [
     company: 'ASML'
   },
   {
-    // Adobe's Workday CXS sites (external_experienced + seasonal
-    // external_university). Europe locationCountry facet crossed with the
-    // Intern worker subtype, NVIDIA-style; a role mis-tagged Regular is the
-    // accepted trade-off.
     name: 'Adobe',
     enabled: true,
     intervalSeconds: 60 * 20,
@@ -196,69 +145,48 @@ export const portalsSeed: Portal[] = [
     company: 'Adobe'
   },
   {
-    // Airbnb's Greenhouse board (one request, ~200 mostly-senior roles); title-level
-    // intern+technical prefilter because the rare interns are often non-technical.
-    name: 'Airbnb (EU intern technical roles)',
+    name: 'Airbnb',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'airbnb',
     company: 'Airbnb'
   },
   {
-    // Discord's Greenhouse board (whole board + descriptions in 1 request).
-    // ~50 roles, overwhelmingly senior and US-only; 0 EU student matches is
-    // the expected steady state — the portal exists to catch future postings.
-    name: 'Discord (EU student technical roles)',
+    name: 'Discord',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'discord',
     company: 'Discord'
   },
   {
-    // Notion's Ashby board (1 request, descriptions inline). Intern/new-grad roles are
-    // currently US-only and EU postings are go-to-market, so the technical+student title
-    // filter legitimately yields 0 today; it exists for a future European intern class.
-    name: 'Notion (EU student technical roles)',
+    name: 'Notion',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'notion',
     company: 'Notion'
   },
   {
-    // Dropbox's Greenhouse board (jobs.dropbox.com) — one request for the whole board;
-    // Virtual First so locations are "Remote - <country>" text; intern postings are
-    // seasonal, so the title/technical/Europe prefilter usually yields 0 off-season.
-    name: 'Dropbox (EU student technical roles)',
+    name: 'Dropbox',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'dropbox',
     company: 'Dropbox'
   },
   {
-    // Jobs come from github.careers (iCIMS/Jibe) /api/jobs — whole board in 1 request
-    // with limit=100. The board is nearly all senior full-time roles, so the title
-    // filter keeps the steady state at 0 until a rare intern/student posting appears.
-    name: 'GitHub (EU student technical roles)',
+    name: 'GitHub',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'github',
     company: 'GitHub'
   },
   {
-    // Atlassian's careers endpoint aggregates all four regional iCIMS portals with
-    // descriptions inline in one request; interns are seasonal (Aug–Sep openings),
-    // so the title filter targets intern/working-student/graduate technical roles
-    // and 0 jobs off-season is normal.
-    name: 'Atlassian (EU student technical roles)',
+    name: 'Atlassian',
     enabled: true,
     intervalSeconds: 60 * 20,
     source: 'atlassian',
     company: 'Atlassian'
   },
   {
-    // Palantir's Lever board (full descriptions inline, real alpha-2 country per
-    // posting). Keeps intern-commitment or intern-titled technical roles in
-    // Europe; Deployment Strategist is left to the LLM to judge.
     name: 'Palantir',
     enabled: true,
     intervalSeconds: 60 * 20,
@@ -269,11 +197,6 @@ export const portalsSeed: Portal[] = [
 
 async function main(): Promise<void> {
   await connect();
-
-  // activeHours is never $set, for the same reason as a portal's status: it is a
-  // knob meant to be tuned in the DB, and re-seeding must not reset it. It is
-  // filled in only where it is missing — $setOnInsert alone would leave the
-  // settings doc that predates the field without a window forever.
   const { activeHours, ...settingsFields } = settingsSeed;
   await settingsCol().updateOne({}, { $set: settingsFields }, { upsert: true });
   const backfilled = await settingsCol().updateOne(
@@ -285,9 +208,6 @@ async function main(): Promise<void> {
   );
 
   for (const portal of portalsSeed) {
-    // status is $setOnInsert, never $set: a new portal starts in `install` so its
-    // back-catalogue is only recorded as a baseline, while re-seeding an existing
-    // portal must not knock it back into install and swallow its pending jobs.
     const { status, ...fields } = portal;
     const res = await portalsCol().updateOne(
       { name: portal.name },
