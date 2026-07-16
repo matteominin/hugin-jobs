@@ -235,6 +235,16 @@ export const portalsSeed: Portal[] = [
     company: 'Dropbox'
   },
   {
+    // Jobs come from github.careers (iCIMS/Jibe) /api/jobs — whole board in 1 request
+    // with limit=100. The board is nearly all senior full-time roles, so the title
+    // filter keeps the steady state at 0 until a rare intern/student posting appears.
+    name: 'GitHub (EU student technical roles)',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'github',
+    company: 'GitHub'
+  },
+  {
     // Palantir's Lever board (full descriptions inline, real alpha-2 country per
     // posting). Keeps intern-commitment or intern-titled technical roles in
     // Europe; Deployment Strategist is left to the LLM to judge.

@@ -71,6 +71,8 @@ npm run dry-run:sources:notion    # test only Notion, no LLM calls
 npm run dry-run:notion            # test only Notion with LLM judging
 npm run dry-run:sources:dropbox   # test only Dropbox, no LLM calls
 npm run dry-run:dropbox           # test only Dropbox with LLM judging
+npm run dry-run:sources:github    # test only GitHub, no LLM calls
+npm run dry-run:github            # test only GitHub with LLM judging
 ```
 
 Both commands run enabled portals once and exit. Dry-run still reads MongoDB settings, portals

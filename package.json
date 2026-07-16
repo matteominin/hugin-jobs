@@ -39,6 +39,8 @@
     "dry-run:sources:notion": "HUGIN_PORTAL=notion HUGIN_DRY_RUN=1 HUGIN_DRY_RUN_SKIP_LLM=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
     "dry-run:dropbox": "HUGIN_PORTAL=dropbox HUGIN_DRY_RUN=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
     "dry-run:sources:dropbox": "HUGIN_PORTAL=dropbox HUGIN_DRY_RUN=1 HUGIN_DRY_RUN_SKIP_LLM=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
+    "dry-run:github": "HUGIN_PORTAL=github HUGIN_DRY_RUN=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
+    "dry-run:sources:github": "HUGIN_PORTAL=github HUGIN_DRY_RUN=1 HUGIN_DRY_RUN_SKIP_LLM=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
     "start": "node dist/index.js",
     "build": "tsc",
     "seed": "tsx src/seed.ts"

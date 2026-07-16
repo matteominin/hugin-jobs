@@ -11,6 +11,7 @@ import { DatabricksSource } from './databricks.js';
 import { DeepMindSource } from './deepmind.js';
 import { DiscordSource } from './discord.js';
 import { DropboxSource } from './dropbox.js';
+import { GitHubSource } from './github.js';
 import { GoogleSource } from './google.js';
 import { MicrosoftSource } from './microsoft.js';
 import { NetflixSource } from './netflix.js';
@@ -56,6 +57,7 @@ const registry: Record<string, (portal: Portal) => Source> = {
   discord: (portal) => new DiscordSource(portal),
   notion: (portal) => new NotionSource(portal),
   dropbox: (portal) => new DropboxSource(portal),
+  github: (portal) => new GitHubSource(portal),
 };
 
 /** Resolve the code source for a portal by its `source` key. */
