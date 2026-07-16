@@ -225,6 +225,16 @@ export const portalsSeed: Portal[] = [
     company: 'Notion'
   },
   {
+    // Dropbox's Greenhouse board (jobs.dropbox.com) — one request for the whole board;
+    // Virtual First so locations are "Remote - <country>" text; intern postings are
+    // seasonal, so the title/technical/Europe prefilter usually yields 0 off-season.
+    name: 'Dropbox (EU student technical roles)',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'dropbox',
+    company: 'Dropbox'
+  },
+  {
     // Palantir's Lever board (full descriptions inline, real alpha-2 country per
     // posting). Keeps intern-commitment or intern-titled technical roles in
     // Europe; Deployment Strategist is left to the LLM to judge.
