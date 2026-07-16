@@ -4,6 +4,7 @@ import { AirbnbSource } from './airbnb.js';
 import { AmazonSource } from './amazon.js';
 import { AppleSource } from './apple.js';
 import { AsmlSource } from './asml.js';
+import { AtlassianSource } from './atlassian.js';
 import type { Source } from './base.js';
 import { BoltSource } from './bolt.js';
 import { CloudflareSource } from './cloudflare.js';
@@ -58,6 +59,7 @@ const registry: Record<string, (portal: Portal) => Source> = {
   notion: (portal) => new NotionSource(portal),
   dropbox: (portal) => new DropboxSource(portal),
   github: (portal) => new GitHubSource(portal),
+  atlassian: (portal) => new AtlassianSource(portal),
 };
 
 /** Resolve the code source for a portal by its `source` key. */

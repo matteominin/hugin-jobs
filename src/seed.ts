@@ -245,6 +245,17 @@ export const portalsSeed: Portal[] = [
     company: 'GitHub'
   },
   {
+    // Atlassian's careers endpoint aggregates all four regional iCIMS portals with
+    // descriptions inline in one request; interns are seasonal (Aug–Sep openings),
+    // so the title filter targets intern/working-student/graduate technical roles
+    // and 0 jobs off-season is normal.
+    name: 'Atlassian (EU student technical roles)',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'atlassian',
+    company: 'Atlassian'
+  },
+  {
     // Palantir's Lever board (full descriptions inline, real alpha-2 country per
     // posting). Keeps intern-commitment or intern-titled technical roles in
     // Europe; Deployment Strategist is left to the LLM to judge.
