@@ -5,5 +5,7 @@ admin-ui/dist/
 .env
 *.log
 .DS_Store
-companies.csv
 admin-ui/*.tsbuildinfo
+
+companies.csv
+origcompanies.csv
