@@ -306,13 +306,6 @@ export const portalsSeed: Portal[] = [
     company: 'Twilio'
   },
   {
-    name: 'Celonis',
-    enabled: true,
-    intervalSeconds: 60 * 20,
-    source: 'celonis',
-    company: 'Celonis'
-  },
-  {
     name: 'Miro',
     enabled: true,
     intervalSeconds: 60 * 20,
@@ -472,69 +465,6 @@ export const portalsSeed: Portal[] = [
     intervalSeconds: 60 * 20,
     source: 'davinci',
     company: 'Da Vinci Derivatives'
-  },
-  {
-    name: 'Wayve',
-    enabled: true,
-    intervalSeconds: 60 * 20,
-    source: 'wayve',
-    company: 'Wayve'
-  },
-  {
-    name: 'Doctolib',
-    enabled: true,
-    intervalSeconds: 60 * 20,
-    source: 'doctolib',
-    company: 'Doctolib'
-  },
-  {
-    name: 'N26',
-    enabled: true,
-    intervalSeconds: 60 * 20,
-    source: 'n26',
-    company: 'N26'
-  },
-  {
-    name: 'Monzo',
-    enabled: true,
-    intervalSeconds: 60 * 20,
-    source: 'monzo',
-    company: 'Monzo'
-  },
-  {
-    name: 'GetYourGuide',
-    enabled: true,
-    intervalSeconds: 60 * 20,
-    source: 'getyourguide',
-    company: 'GetYourGuide'
-  },
-  {
-    name: 'Wolt',
-    enabled: true,
-    intervalSeconds: 60 * 20,
-    source: 'wolt',
-    company: 'Wolt'
-  },
-  {
-    name: 'DeepL',
-    enabled: true,
-    intervalSeconds: 60 * 20,
-    source: 'deepl',
-    company: 'DeepL'
-  },
-  {
-    name: 'Qonto',
-    enabled: true,
-    intervalSeconds: 60 * 20,
-    source: 'qonto',
-    company: 'Qonto'
-  },
-  {
-    name: 'Mollie',
-    enabled: true,
-    intervalSeconds: 60 * 20,
-    source: 'mollie',
-    company: 'Mollie'
   },
   {
     name: 'Wise',

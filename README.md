@@ -173,8 +173,6 @@ npm run dry-run:sources:graphcore # test only Graphcore, no LLM calls
 npm run dry-run:graphcore        # test only Graphcore with LLM judging
 npm run dry-run:sources:twilio    # test only Twilio, no LLM calls
 npm run dry-run:twilio           # test only Twilio with LLM judging
-npm run dry-run:sources:celonis   # test only Celonis, no LLM calls
-npm run dry-run:celonis          # test only Celonis with LLM judging
 npm run dry-run:sources:miro      # test only Miro, no LLM calls
 npm run dry-run:miro             # test only Miro with LLM judging
 npm run dry-run:sources:linear    # test only Linear, no LLM calls
@@ -221,24 +219,6 @@ npm run dry-run:sources:quora     # test only Quora, no LLM calls
 npm run dry-run:quora            # test only Quora with LLM judging
 npm run dry-run:sources:davinci   # test only Da Vinci Derivatives, no LLM calls
 npm run dry-run:davinci          # test only Da Vinci Derivatives with LLM judging
-npm run dry-run:sources:wayve     # test only Wayve, no LLM calls
-npm run dry-run:wayve            # test only Wayve with LLM judging
-npm run dry-run:sources:doctolib  # test only Doctolib, no LLM calls
-npm run dry-run:doctolib         # test only Doctolib with LLM judging
-npm run dry-run:sources:n26       # test only N26, no LLM calls
-npm run dry-run:n26              # test only N26 with LLM judging
-npm run dry-run:sources:monzo     # test only Monzo, no LLM calls
-npm run dry-run:monzo            # test only Monzo with LLM judging
-npm run dry-run:sources:getyourguide # test only GetYourGuide, no LLM calls
-npm run dry-run:getyourguide     # test only GetYourGuide with LLM judging
-npm run dry-run:sources:wolt      # test only Wolt, no LLM calls
-npm run dry-run:wolt             # test only Wolt with LLM judging
-npm run dry-run:sources:deepl     # test only DeepL, no LLM calls
-npm run dry-run:deepl            # test only DeepL with LLM judging
-npm run dry-run:sources:qonto     # test only Qonto, no LLM calls
-npm run dry-run:qonto            # test only Qonto with LLM judging
-npm run dry-run:sources:mollie    # test only Mollie, no LLM calls
-npm run dry-run:mollie           # test only Mollie with LLM judging
 npm run dry-run:sources:wise      # test only Wise, no LLM calls
 npm run dry-run:wise             # test only Wise with LLM judging
 npm run dry-run:sources:bosch     # test only Bosch, no LLM calls
