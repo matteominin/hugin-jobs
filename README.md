@@ -75,6 +75,26 @@ npm run dry-run:sources:github    # test only GitHub, no LLM calls
 npm run dry-run:github            # test only GitHub with LLM judging
 npm run dry-run:sources:atlassian # test only Atlassian, no LLM calls
 npm run dry-run:atlassian         # test only Atlassian with LLM judging
+npm run dry-run:sources:coinbase  # test only Coinbase, no LLM calls
+npm run dry-run:coinbase          # test only Coinbase with LLM judging
+npm run dry-run:sources:datadog   # test only Datadog, no LLM calls
+npm run dry-run:datadog           # test only Datadog with LLM judging
+npm run dry-run:sources:mongodb   # test only MongoDB, no LLM calls
+npm run dry-run:mongodb           # test only MongoDB with LLM judging
+npm run dry-run:sources:figma     # test only Figma, no LLM calls
+npm run dry-run:figma             # test only Figma with LLM judging
+npm run dry-run:sources:gitlab    # test only GitLab, no LLM calls
+npm run dry-run:gitlab            # test only GitLab with LLM judging
+npm run dry-run:sources:skyscanner # test only Skyscanner, no LLM calls
+npm run dry-run:skyscanner        # test only Skyscanner with LLM judging
+npm run dry-run:sources:pinterest # test only Pinterest, no LLM calls
+npm run dry-run:pinterest         # test only Pinterest with LLM judging
+npm run dry-run:sources:cohere    # test only Cohere, no LLM calls
+npm run dry-run:cohere            # test only Cohere with LLM judging
+npm run dry-run:sources:perplexity # test only Perplexity, no LLM calls
+npm run dry-run:perplexity        # test only Perplexity with LLM judging
+npm run dry-run:sources:deliveroo # test only Deliveroo, no LLM calls
+npm run dry-run:deliveroo         # test only Deliveroo with LLM judging
 ```
 
 Both commands run enabled portals once and exit. Dry-run still reads MongoDB settings, portals
