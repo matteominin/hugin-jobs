@@ -31,6 +31,39 @@ npm run dev            # start the scheduler
 
 MongoDB is expected on `mongodb://localhost:27018` (local docker instance).
 
+## Admin dashboard
+
+A password-protected web dashboard (React + Passport) to watch the service without touching the
+scheduler. It runs as its own process and never starts a job cycle, the LLM, or Telegram — the
+only writes it makes are the ones you trigger (enabling/disabling a portal).
+
+It lets you:
+
+- **Browse notified jobs** — every job the LLM marked suitable, with score, tags and reasoning.
+- **Turn portals on/off** — flips the portal's `enabled` flag in Mongo (and clears its failure
+  counter when re-enabling).
+- **Run a portal test** — fetch-only, exactly like `dry-run:sources`: it calls the source and
+  shows the raw job list it produces, with **no LLM spend, no DB writes, no Telegram**. Handy
+  when a source is under maintenance and you want to see what it currently returns.
+
+Access is limited to **two admin accounts**, stored in Mongo as bcrypt hashes.
+
+```bash
+# 1. set the two accounts + a session secret in .env
+#    ADMIN1_USER / ADMIN1_PASS, ADMIN2_USER / ADMIN2_PASS, SESSION_SECRET, ADMIN_PORT
+npm run seed:admins        # upserts exactly the two accounts (removes any others)
+
+# 2a. production: build the UI once, then serve API + UI from one port
+npm run admin:ui:build
+npm run admin               # http://localhost:4000
+
+# 2b. development: API on :4000, Vite UI on :5173 (proxies /api to :4000)
+npm run admin              # terminal 1
+npm run admin:ui:dev       # terminal 2  → open http://localhost:5173
+```
+
+Re-running `npm run seed:admins` rotates the two passwords; it never creates a third account.
+
 ## Safe testing
 
 Use dry-run mode to test sources and matching without changing stored jobs, portal state or
