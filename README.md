@@ -239,6 +239,10 @@ npm run dry-run:sources:qonto     # test only Qonto, no LLM calls
 npm run dry-run:qonto            # test only Qonto with LLM judging
 npm run dry-run:sources:mollie    # test only Mollie, no LLM calls
 npm run dry-run:mollie           # test only Mollie with LLM judging
+npm run dry-run:sources:wise      # test only Wise, no LLM calls
+npm run dry-run:wise             # test only Wise with LLM judging
+npm run dry-run:sources:bosch     # test only Bosch, no LLM calls
+npm run dry-run:bosch            # test only Bosch with LLM judging
 ```
 
 Both commands run enabled portals once and exit. Dry-run still reads MongoDB settings, portals

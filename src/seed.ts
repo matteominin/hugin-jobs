@@ -536,6 +536,21 @@ export const portalsSeed: Portal[] = [
     source: 'mollie',
     company: 'Mollie'
   },
+  {
+    name: 'Wise',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'wise',
+    company: 'Wise'
+  },
+  {
+    name: 'Bosch',
+    enabled: true,
+    intervalSeconds: 60 * 60 * 3,
+    source: 'bosch',
+    company: 'Bosch',
+    sourceOptions: { fetchDescriptions: false }
+  },
 ];
 
 async function main(): Promise<void> {

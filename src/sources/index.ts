@@ -10,6 +10,7 @@ import { AtlassianSource } from './atlassian.js';
 import type { Source } from './base.js';
 import { BlockSource } from './block.js';
 import { BoltSource } from './bolt.js';
+import { BoschSource } from './bosch.js';
 import { BrexSource } from './brex.js';
 import { CelonisSource } from './celonis.js';
 import { CloudflareSource } from './cloudflare.js';
@@ -74,6 +75,7 @@ import { SnowflakeSource } from './snowflake.js';
 import { SpotifySource } from './spotify.js';
 import { StripeSource } from './stripe.js';
 import { UberSource } from './uber.js';
+import { WiseSource } from './wise.js';
 
 export type { Source } from './base.js';
 export { BaseSource } from './base.js';
@@ -149,6 +151,8 @@ const registry: Record<string, (portal: Portal) => Source> = {
   deepl: (portal) => new DeepLSource(portal),
   qonto: (portal) => new QontoSource(portal),
   mollie: (portal) => new MollieSource(portal),
+  wise: (portal) => new WiseSource(portal),
+  bosch: (portal) => new BoschSource(portal),
   netflix: (portal) => new NetflixSource(portal),
   asml: (portal) => new AsmlSource(portal),
   adobe: (portal) => new AdobeSource(portal),
