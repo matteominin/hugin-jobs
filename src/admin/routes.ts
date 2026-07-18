@@ -1,41 +1,43 @@
+import bcrypt from 'bcryptjs';
 import { Router } from 'express';
 import { ObjectId } from 'mongodb';
-import passport from 'passport';
-import { jobs as jobsCol, portals as portalsCol } from '../db.js';
+import { adminUsers, jobs as jobsCol, portals as portalsCol } from '../db.js';
 import { getSource } from '../sources/index.js';
 import type { Portal } from '../types.js';
-import { ensureAuthenticated, type SessionUser } from './auth.js';
+import { ensureAuthenticated, signToken } from './auth.js';
 
 export const api = Router();
 
 // ---- auth ----
 
-api.post('/login', (req, res, next) => {
-  passport.authenticate('local', (err: unknown, user: SessionUser | false, info?: { message?: string }) => {
-    if (err) return next(err);
-    if (!user) return res.status(401).json({ error: info?.message ?? 'Invalid credentials' });
-    req.logIn(user, (loginErr) => {
-      if (loginErr) return next(loginErr);
-      return res.json({ user });
-    });
-  })(req, res, next);
+/** Verify credentials against the bcrypt hash and issue a bearer token. */
+api.post('/login', async (req, res, next) => {
+  try {
+    const { username, password } = (req.body ?? {}) as { username?: unknown; password?: unknown };
+    if (typeof username !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({ error: 'username and password are required' });
+    }
+    const user = await adminUsers().findOne({ username });
+    // compare against a dummy hash on a miss so timing doesn't reveal valid usernames
+    const hash = user?.passwordHash ?? '$2a$12$0000000000000000000000000000000000000000000000000000';
+    const ok = await bcrypt.compare(password, hash);
+    if (!user || !ok) return res.status(401).json({ error: 'Invalid credentials' });
+    res.json({ token: signToken(user.username), user: { username: user.username } });
+  } catch (err) {
+    next(err);
+  }
 });
 
-api.post('/logout', (req, res, next) => {
-  req.logout((err) => {
-    if (err) return next(err);
-    req.session.destroy(() => res.json({ ok: true }));
-  });
-});
+// Logout is client-side for stateless tokens (drop the token); kept for symmetry.
+api.post('/logout', (_req, res) => res.json({ ok: true }));
 
-api.get('/me', (req, res) => {
-  if (req.isAuthenticated?.()) return res.json({ user: req.user });
-  res.status(401).json({ error: 'Not authenticated' });
-});
-
-// ---- everything below requires a session ----
+// ---- everything below requires a valid token ----
 
 api.use(ensureAuthenticated);
+
+api.get('/me', (_req, res) => {
+  res.json({ user: res.locals.user });
+});
 
 /** Serialize a portal into the shape the dashboard needs (no secrets involved). */
 function portalView(p: Portal) {

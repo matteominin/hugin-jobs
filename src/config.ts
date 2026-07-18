@@ -18,14 +18,19 @@ export const config = {
    * local override), then PORT (what Render/most PaaS inject), then 4000.
    */
   adminPort: Math.max(1, Number(process.env.ADMIN_PORT ?? process.env.PORT ?? '4000') || 4000),
-  /** secret used to sign admin session cookies; must be set in production */
-  sessionSecret: process.env.SESSION_SECRET ?? 'hugin-admin-dev-secret-change-me',
+  /** secret used to sign admin JWTs; MUST be set to a long random value in production */
+  jwtSecret: process.env.JWT_SECRET ?? 'hugin-admin-dev-secret-change-me',
+  /** admin token lifetime (any `jsonwebtoken` expiresIn value, e.g. '7d', '12h') */
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
   /**
-   * Whether to mark the session cookie Secure (HTTPS-only). Defaults on when
-   * NODE_ENV=production. Behind a TLS-terminating proxy (Render) this also
-   * requires `trust proxy` — see createAdminApp.
+   * Origins allowed to call the admin API cross-site (the frontend's URL, e.g.
+   * a Firebase Hosting domain). Comma-separated. Empty = same-origin only, so no
+   * CORS is applied — correct when the API also serves the built UI.
    */
-  secureCookies: process.env.NODE_ENV === 'production' || /^(1|true|yes|on)$/i.test(process.env.SECURE_COOKIES ?? ''),
+  adminCorsOrigins: (process.env.ADMIN_CORS_ORIGIN ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean),
   mongoUri: process.env.MONGODB_URI ?? 'mongodb://localhost:27018/?directConnection=true',
   mongoDb: process.env.MONGODB_DB ?? 'hugin_jobs',
   deepseekApiKey: process.env.DEEPSEEK_API_KEY ?? '',

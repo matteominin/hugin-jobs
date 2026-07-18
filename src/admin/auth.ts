@@ -1,51 +1,37 @@
-import bcrypt from 'bcryptjs';
 import type { RequestHandler } from 'express';
-import passport from 'passport';
-import { Strategy as LocalStrategy } from 'passport-local';
-import { adminUsers } from '../db.js';
+import jwt from 'jsonwebtoken';
+import { config } from '../config.js';
 
-/** The shape kept in the session — never the password hash. */
-export interface SessionUser {
+/** What we encode in the admin JWT (never the password hash). */
+export interface TokenPayload {
   username: string;
 }
 
-/**
- * Wire Passport with a single local (username + password) strategy that checks
- * the bcrypt hash in the adminUsers collection. Only the username is serialized
- * into the session cookie; every request re-confirms the account still exists.
- */
-export function configurePassport(): void {
-  passport.use(
-    new LocalStrategy(async (username, password, done) => {
-      try {
-        const user = await adminUsers().findOne({ username });
-        if (!user) return done(null, false, { message: 'Invalid credentials' });
-        const ok = await bcrypt.compare(password, user.passwordHash);
-        if (!ok) return done(null, false, { message: 'Invalid credentials' });
-        return done(null, { username: user.username } satisfies SessionUser);
-      } catch (err) {
-        return done(err);
-      }
-    }),
-  );
-
-  passport.serializeUser((user, done) => {
-    done(null, (user as SessionUser).username);
-  });
-
-  passport.deserializeUser(async (username: string, done) => {
-    try {
-      const user = await adminUsers().findOne({ username });
-      if (!user) return done(null, false);
-      done(null, { username: user.username } satisfies SessionUser);
-    } catch (err) {
-      done(err);
-    }
+/** Sign a bearer token for a verified admin. */
+export function signToken(username: string): string {
+  return jwt.sign({ username } satisfies TokenPayload, config.jwtSecret, {
+    expiresIn: config.jwtExpiresIn as jwt.SignOptions['expiresIn'],
   });
 }
 
-/** Gate for API routes: 401 unless a valid session is present. */
+/**
+ * Gate for API routes: require a valid `Authorization: Bearer <token>`. On
+ * success the decoded admin is placed on res.locals.user. Stateless — no session
+ * or DB lookup — which is what lets the frontend live on a different origin
+ * (e.g. Firebase) from the API (e.g. Render).
+ */
 export const ensureAuthenticated: RequestHandler = (req, res, next) => {
-  if (req.isAuthenticated?.()) return next();
-  res.status(401).json({ error: 'Not authenticated' });
+  const header = req.headers.authorization;
+  const token = header?.startsWith('Bearer ') ? header.slice(7) : null;
+  if (!token) {
+    res.status(401).json({ error: 'Not authenticated' });
+    return;
+  }
+  try {
+    const payload = jwt.verify(token, config.jwtSecret) as TokenPayload;
+    res.locals.user = { username: payload.username } satisfies TokenPayload;
+    next();
+  } catch {
+    res.status(401).json({ error: 'Invalid or expired token' });
+  }
 };
