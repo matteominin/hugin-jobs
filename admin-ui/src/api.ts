@@ -41,25 +41,52 @@ export interface NotifiedJob {
   createdAt: string;
 }
 
+// Base URL of the admin API. Empty in dev (Vite proxies /api to :4000) and when
+// the API serves this build itself; set VITE_API_BASE to the Render URL when the
+// frontend is hosted elsewhere (e.g. Firebase).
+const BASE = (import.meta.env.VITE_API_BASE ?? '').replace(/\/$/, '');
+const TOKEN_KEY = 'hugin_admin_token';
+
+export function getToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
+}
+export function setToken(token: string | null): void {
+  if (token) localStorage.setItem(TOKEN_KEY, token);
+  else localStorage.removeItem(TOKEN_KEY);
+}
+
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`/api${path}`, {
+  const token = getToken();
+  const res = await fetch(`${BASE}/api${path}`, {
     ...init,
-    headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) },
-    credentials: 'same-origin',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init?.headers ?? {}),
+    },
   });
   const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error((body as { error?: string }).error ?? `Request failed (${res.status})`);
+  if (!res.ok) {
+    if (res.status === 401) setToken(null); // stale/expired token → force re-login
+    throw new Error((body as { error?: string }).error ?? `Request failed (${res.status})`);
+  }
   return body as T;
 }
 
 export const api = {
   me: () => req<{ user: { username: string } }>('/me'),
-  login: (username: string, password: string) =>
-    req<{ user: { username: string } }>('/login', {
+  login: async (username: string, password: string) => {
+    const r = await req<{ token: string; user: { username: string } }>('/login', {
       method: 'POST',
       body: JSON.stringify({ username, password }),
-    }),
-  logout: () => req<{ ok: true }>('/logout', { method: 'POST' }),
+    });
+    setToken(r.token);
+    return r;
+  },
+  logout: async () => {
+    setToken(null);
+    return { ok: true as const };
+  },
   portals: () => req<{ portals: Portal[] }>('/portals'),
   togglePortal: (id: string, enabled: boolean) =>
     req<{ portal: Portal }>(`/portals/${id}`, {

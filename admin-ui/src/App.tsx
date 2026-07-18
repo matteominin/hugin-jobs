@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { api } from './api.ts';
+import { api, getToken } from './api.ts';
 import { Login } from './Login.tsx';
 import { Portals } from './Portals.tsx';
 import { Jobs } from './Jobs.tsx';
@@ -12,6 +12,10 @@ export function App() {
   const [tab, setTab] = useState<Tab>('portals');
 
   useEffect(() => {
+    if (!getToken()) {
+      setLoading(false);
+      return;
+    }
     api
       .me()
       .then((r) => setUser(r.user.username))
