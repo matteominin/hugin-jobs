@@ -13,10 +13,19 @@ function envList(name: string): string[] {
 
 export const config = {
   port: Math.max(1, Number(process.env.PORT ?? '3000') || 3000),
-  /** port the admin dashboard server listens on */
-  adminPort: Math.max(1, Number(process.env.ADMIN_PORT ?? '4000') || 4000),
+  /**
+   * Port the admin dashboard server listens on. Prefers ADMIN_PORT (explicit
+   * local override), then PORT (what Render/most PaaS inject), then 4000.
+   */
+  adminPort: Math.max(1, Number(process.env.ADMIN_PORT ?? process.env.PORT ?? '4000') || 4000),
   /** secret used to sign admin session cookies; must be set in production */
   sessionSecret: process.env.SESSION_SECRET ?? 'hugin-admin-dev-secret-change-me',
+  /**
+   * Whether to mark the session cookie Secure (HTTPS-only). Defaults on when
+   * NODE_ENV=production. Behind a TLS-terminating proxy (Render) this also
+   * requires `trust proxy` — see createAdminApp.
+   */
+  secureCookies: process.env.NODE_ENV === 'production' || /^(1|true|yes|on)$/i.test(process.env.SECURE_COOKIES ?? ''),
   mongoUri: process.env.MONGODB_URI ?? 'mongodb://localhost:27018/?directConnection=true',
   mongoDb: process.env.MONGODB_DB ?? 'hugin_jobs',
   deepseekApiKey: process.env.DEEPSEEK_API_KEY ?? '',

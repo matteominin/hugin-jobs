@@ -20,6 +20,10 @@ export function createAdminApp(): Express {
   configurePassport();
   const app = express();
 
+  // Render (and most PaaS) terminate TLS at a proxy and forward plain HTTP, so
+  // the app must trust the proxy for req.secure / a Secure cookie to work.
+  if (config.secureCookies) app.set('trust proxy', 1);
+
   app.use(express.json());
   app.use(
     session({
@@ -30,7 +34,7 @@ export function createAdminApp(): Express {
       cookie: {
         httpOnly: true,
         sameSite: 'lax',
-        secure: false, // set true behind HTTPS in production
+        secure: config.secureCookies,
         maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
       },
     }),
