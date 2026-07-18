@@ -148,6 +148,26 @@ npm run dry-run:sources:linear    # test only Linear, no LLM calls
 npm run dry-run:linear           # test only Linear with LLM judging
 npm run dry-run:sources:confluent # test only Confluent, no LLM calls
 npm run dry-run:confluent        # test only Confluent with LLM judging
+npm run dry-run:sources:imc       # test only IMC Trading, no LLM calls
+npm run dry-run:imc              # test only IMC Trading with LLM judging
+npm run dry-run:sources:fastly    # test only Fastly, no LLM calls
+npm run dry-run:fastly           # test only Fastly with LLM judging
+npm run dry-run:sources:okta      # test only Okta, no LLM calls
+npm run dry-run:okta             # test only Okta with LLM judging
+npm run dry-run:sources:zscaler   # test only Zscaler, no LLM calls
+npm run dry-run:zscaler          # test only Zscaler with LLM judging
+npm run dry-run:sources:asana     # test only Asana, no LLM calls
+npm run dry-run:asana            # test only Asana with LLM judging
+npm run dry-run:sources:block     # test only Block, no LLM calls
+npm run dry-run:block            # test only Block with LLM judging
+npm run dry-run:sources:roblox    # test only Roblox, no LLM calls
+npm run dry-run:roblox           # test only Roblox with LLM judging
+npm run dry-run:sources:samsara   # test only Samsara, no LLM calls
+npm run dry-run:samsara          # test only Samsara with LLM judging
+npm run dry-run:sources:robinhood # test only Robinhood, no LLM calls
+npm run dry-run:robinhood        # test only Robinhood with LLM judging
+npm run dry-run:sources:ramp      # test only Ramp, no LLM calls
+npm run dry-run:ramp             # test only Ramp with LLM judging
 ```
 
 Both commands run enabled portals once and exit. Dry-run still reads MongoDB settings, portals
