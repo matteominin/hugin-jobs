@@ -95,6 +95,26 @@ npm run dry-run:sources:perplexity # test only Perplexity, no LLM calls
 npm run dry-run:perplexity        # test only Perplexity with LLM judging
 npm run dry-run:sources:deliveroo # test only Deliveroo, no LLM calls
 npm run dry-run:deliveroo         # test only Deliveroo with LLM judging
+npm run dry-run:sources:adyen     # test only Adyen, no LLM calls
+npm run dry-run:adyen            # test only Adyen with LLM judging
+npm run dry-run:sources:flowtraders # test only Flow Traders, no LLM calls
+npm run dry-run:flowtraders      # test only Flow Traders with LLM judging
+npm run dry-run:sources:jetbrains # test only JetBrains, no LLM calls
+npm run dry-run:jetbrains        # test only JetBrains with LLM judging
+npm run dry-run:sources:elastic   # test only Elastic, no LLM calls
+npm run dry-run:elastic          # test only Elastic with LLM judging
+npm run dry-run:sources:graphcore # test only Graphcore, no LLM calls
+npm run dry-run:graphcore        # test only Graphcore with LLM judging
+npm run dry-run:sources:twilio    # test only Twilio, no LLM calls
+npm run dry-run:twilio           # test only Twilio with LLM judging
+npm run dry-run:sources:celonis   # test only Celonis, no LLM calls
+npm run dry-run:celonis          # test only Celonis with LLM judging
+npm run dry-run:sources:miro      # test only Miro, no LLM calls
+npm run dry-run:miro             # test only Miro with LLM judging
+npm run dry-run:sources:linear    # test only Linear, no LLM calls
+npm run dry-run:linear           # test only Linear with LLM judging
+npm run dry-run:sources:confluent # test only Confluent, no LLM calls
+npm run dry-run:confluent        # test only Confluent with LLM judging
 ```
 
 Both commands run enabled portals once and exit. Dry-run still reads MongoDB settings, portals
