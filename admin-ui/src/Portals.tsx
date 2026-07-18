@@ -31,8 +31,14 @@ const STATE_LABEL: Record<State, string> = {
 const STATE_RANK: Record<State, number> = { active: 0, install: 1, failing: 2, disabled: 3 };
 
 type SortKey = 'name' | 'state' | 'lastRunAt' | 'failureCount';
-const PAGE_SIZE = 12;
 const FILTERS: Array<State | 'all'> = ['all', 'active', 'install', 'failing', 'disabled'];
+
+const PAGE_SIZES = [10, 12, 25, 50, 100];
+const PAGE_SIZE_KEY = 'hugin_portals_pagesize';
+function readPageSize(): number {
+  const v = Number(localStorage.getItem(PAGE_SIZE_KEY));
+  return PAGE_SIZES.includes(v) ? v : 12;
+}
 
 export function Portals() {
   const [portals, setPortals] = useState<Portal[]>([]);
@@ -48,6 +54,7 @@ export function Portals() {
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(readPageSize);
 
   const load = () => {
     setLoading(true);
@@ -60,7 +67,12 @@ export function Portals() {
   useEffect(load, []);
 
   // any change to the view resets to the first page
-  useEffect(() => setPage(1), [q, filter, sortKey, sortDir]);
+  useEffect(() => setPage(1), [q, filter, sortKey, sortDir, pageSize]);
+
+  const changePageSize = (n: number) => {
+    localStorage.setItem(PAGE_SIZE_KEY, String(n));
+    setPageSize(n);
+  };
 
   const toggle = async (p: Portal) => {
     try {
@@ -135,9 +147,9 @@ export function Portals() {
     return rows;
   }, [portals, q, filter, sortKey, sortDir]);
 
-  const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
+  const pageCount = Math.max(1, Math.ceil(visible.length / pageSize));
   const current = Math.min(page, pageCount);
-  const pageRows = visible.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+  const pageRows = visible.slice((current - 1) * pageSize, current * pageSize);
 
   const sortOn = (key: SortKey) => {
     if (key === sortKey) {
@@ -236,11 +248,21 @@ export function Portals() {
       </div>
 
       <div className="pager">
-        <span className="muted">
-          {visible.length === 0
-            ? '0 portals'
-            : `${(current - 1) * PAGE_SIZE + 1}–${Math.min(current * PAGE_SIZE, visible.length)} of ${visible.length}`}
-        </span>
+        <div className="pager-left">
+          <span className="muted">
+            {visible.length === 0
+              ? '0 portals'
+              : `${(current - 1) * pageSize + 1}–${Math.min(current * pageSize, visible.length)} of ${visible.length}`}
+          </span>
+          <label className="page-size muted">
+            Rows
+            <select value={pageSize} onChange={(e) => changePageSize(Number(e.target.value))}>
+              {PAGE_SIZES.map((n) => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
+          </label>
+        </div>
         <div className="pager-controls">
           <button className="btn ghost small" disabled={current <= 1} onClick={() => setPage(current - 1)}>
             ← Prev

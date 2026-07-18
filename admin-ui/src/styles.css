@@ -343,6 +343,29 @@ th.sortable.active .sort-arrow {
   margin-top: 14px;
   font-size: 13px;
 }
+.pager-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.page-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.page-size select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 4px 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.page-size select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
 .pager-controls {
   display: flex;
   align-items: center;
