@@ -18,7 +18,10 @@ import { CohereSource } from './cohere.js';
 import { ConfluentSource } from './confluent.js';
 import { DatabricksSource } from './databricks.js';
 import { DatadogSource } from './datadog.js';
+import { DaVinciSource } from './davinci.js';
+import { DeepLSource } from './deepl.js';
 import { DeepMindSource } from './deepmind.js';
+import { DoctolibSource } from './doctolib.js';
 import { DeliverooSource } from './deliveroo.js';
 import { DiscordSource } from './discord.js';
 import { DropboxSource } from './dropbox.js';
@@ -29,6 +32,7 @@ import { FastlySource } from './fastly.js';
 import { FlowTradersSource } from './flowtraders.js';
 import { GitHubSource } from './github.js';
 import { GitLabSource } from './gitlab.js';
+import { GetYourGuideSource } from './getyourguide.js';
 import { GoogleSource } from './google.js';
 import { GraphcoreSource } from './graphcore.js';
 import { GleanSource } from './gleanwork.js';
@@ -39,7 +43,10 @@ import { JumpTradingSource } from './jumptrading.js';
 import { LinearSource } from './linear.js';
 import { MicrosoftSource } from './microsoft.js';
 import { MiroSource } from './miro.js';
+import { MollieSource } from './mollie.js';
 import { MongoDbSource } from './mongodb.js';
+import { MonzoSource } from './monzo.js';
+import { N26Source } from './n26.js';
 import { NetflixSource } from './netflix.js';
 import { NotionSource } from './notion.js';
 import { NvidiaSource } from './nvidia.js';
@@ -49,6 +56,7 @@ import { PalantirSource } from './palantir.js';
 import { PerplexitySource } from './perplexity.js';
 import { PinterestSource } from './pinterest.js';
 import { PostmanSource } from './postman.js';
+import { QontoSource } from './qonto.js';
 import { QualcommSource } from './qualcomm.js';
 import { QuoraSource } from './quora.js';
 import { RampSource } from './ramp.js';
@@ -58,6 +66,8 @@ import { SamsaraSource } from './samsara.js';
 import { ScaleAiSource } from './scaleai.js';
 import { SkyscannerSource } from './skyscanner.js';
 import { TailscaleSource } from './tailscale.js';
+import { WayveSource } from './wayve.js';
+import { WoltSource } from './wolt.js';
 import { TwilioSource } from './twilio.js';
 import { ZscalerSource } from './zscaler.js';
 import { SnowflakeSource } from './snowflake.js';
@@ -129,6 +139,16 @@ const registry: Record<string, (portal: Portal) => Source> = {
   janestreet: (portal) => new JaneStreetSource(portal),
   jumptrading: (portal) => new JumpTradingSource(portal),
   quora: (portal) => new QuoraSource(portal),
+  davinci: (portal) => new DaVinciSource(portal),
+  wayve: (portal) => new WayveSource(portal),
+  doctolib: (portal) => new DoctolibSource(portal),
+  n26: (portal) => new N26Source(portal),
+  monzo: (portal) => new MonzoSource(portal),
+  getyourguide: (portal) => new GetYourGuideSource(portal),
+  wolt: (portal) => new WoltSource(portal),
+  deepl: (portal) => new DeepLSource(portal),
+  qonto: (portal) => new QontoSource(portal),
+  mollie: (portal) => new MollieSource(portal),
   netflix: (portal) => new NetflixSource(portal),
   asml: (portal) => new AsmlSource(portal),
   adobe: (portal) => new AdobeSource(portal),
