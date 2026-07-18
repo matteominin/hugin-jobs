@@ -8,19 +8,29 @@ import { AtlassianSource } from './atlassian.js';
 import type { Source } from './base.js';
 import { BoltSource } from './bolt.js';
 import { CloudflareSource } from './cloudflare.js';
+import { CoinbaseSource } from './coinbase.js';
+import { CohereSource } from './cohere.js';
 import { DatabricksSource } from './databricks.js';
+import { DatadogSource } from './datadog.js';
 import { DeepMindSource } from './deepmind.js';
+import { DeliverooSource } from './deliveroo.js';
 import { DiscordSource } from './discord.js';
 import { DropboxSource } from './dropbox.js';
+import { FigmaSource } from './figma.js';
 import { GitHubSource } from './github.js';
+import { GitLabSource } from './gitlab.js';
 import { GoogleSource } from './google.js';
 import { MicrosoftSource } from './microsoft.js';
+import { MongoDbSource } from './mongodb.js';
 import { NetflixSource } from './netflix.js';
 import { NotionSource } from './notion.js';
 import { NvidiaSource } from './nvidia.js';
 import { OpenAiSource } from './openai.js';
 import { PalantirSource } from './palantir.js';
+import { PerplexitySource } from './perplexity.js';
+import { PinterestSource } from './pinterest.js';
 import { QualcommSource } from './qualcomm.js';
+import { SkyscannerSource } from './skyscanner.js';
 import { SnowflakeSource } from './snowflake.js';
 import { SpotifySource } from './spotify.js';
 import { StripeSource } from './stripe.js';
@@ -51,6 +61,16 @@ const registry: Record<string, (portal: Portal) => Source> = {
   snowflake: (portal) => new SnowflakeSource(portal),
   openai: (portal) => new OpenAiSource(portal),
   palantir: (portal) => new PalantirSource(portal),
+  coinbase: (portal) => new CoinbaseSource(portal),
+  datadog: (portal) => new DatadogSource(portal),
+  mongodb: (portal) => new MongoDbSource(portal),
+  figma: (portal) => new FigmaSource(portal),
+  gitlab: (portal) => new GitLabSource(portal),
+  pinterest: (portal) => new PinterestSource(portal),
+  skyscanner: (portal) => new SkyscannerSource(portal),
+  cohere: (portal) => new CohereSource(portal),
+  perplexity: (portal) => new PerplexitySource(portal),
+  deliveroo: (portal) => new DeliverooSource(portal),
   netflix: (portal) => new NetflixSource(portal),
   asml: (portal) => new AsmlSource(portal),
   adobe: (portal) => new AdobeSource(portal),
