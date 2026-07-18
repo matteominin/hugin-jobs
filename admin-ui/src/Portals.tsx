@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { api, type Portal, type TestResult } from './api.ts';
 
 function fmtAgo(iso: string | null): string {
@@ -10,6 +10,30 @@ function fmtAgo(iso: string | null): string {
   return `${Math.round(secs / 86400)}d ago`;
 }
 
+// A portal's health, derived from its flags — this is what the operator actually
+// reasons about, so it drives the pill colour, the filter, and status sorting.
+type State = 'active' | 'install' | 'failing' | 'disabled';
+
+function portalState(p: Portal): State {
+  if (!p.enabled) return 'disabled';
+  if (p.status === 'install') return 'install';
+  if (p.failureCount > 0) return 'failing';
+  return 'active';
+}
+
+const STATE_LABEL: Record<State, string> = {
+  active: 'Active',
+  install: 'Installing',
+  failing: 'Failing',
+  disabled: 'Disabled',
+};
+// rank so "healthy → broken" is the natural ascending order
+const STATE_RANK: Record<State, number> = { active: 0, install: 1, failing: 2, disabled: 3 };
+
+type SortKey = 'name' | 'state' | 'lastRunAt' | 'failureCount';
+const PAGE_SIZE = 12;
+const FILTERS: Array<State | 'all'> = ['all', 'active', 'install', 'failing', 'disabled'];
+
 export function Portals() {
   const [portals, setPortals] = useState<Portal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,6 +41,13 @@ export function Portals() {
   const [testing, setTesting] = useState<Record<string, boolean>>({});
   const [results, setResults] = useState<Record<string, TestResult>>({});
   const [open, setOpen] = useState<string | null>(null);
+
+  // view controls
+  const [q, setQ] = useState('');
+  const [filter, setFilter] = useState<State | 'all'>('all');
+  const [sortKey, setSortKey] = useState<SortKey>('name');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const [page, setPage] = useState(1);
 
   const load = () => {
     setLoading(true);
@@ -27,6 +58,9 @@ export function Portals() {
       .finally(() => setLoading(false));
   };
   useEffect(load, []);
+
+  // any change to the view resets to the first page
+  useEffect(() => setPage(1), [q, filter, sortKey, sortDir]);
 
   const toggle = async (p: Portal) => {
     try {
@@ -53,6 +87,68 @@ export function Portals() {
     }
   };
 
+  // count per state for the filter chips (from the search-filtered set, so the
+  // numbers reflect what a chip would actually show)
+  const counts = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    const searched = needle
+      ? portals.filter((p) =>
+          [p.name, p.source, p.company].filter(Boolean).join(' ').toLowerCase().includes(needle),
+        )
+      : portals;
+    const c: Record<string, number> = { all: searched.length, active: 0, install: 0, failing: 0, disabled: 0 };
+    for (const p of searched) c[portalState(p)]++;
+    return c;
+  }, [portals, q]);
+
+  const visible = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    const rows = portals.filter((p) => {
+      if (needle && ![p.name, p.source, p.company].filter(Boolean).join(' ').toLowerCase().includes(needle))
+        return false;
+      if (filter !== 'all' && portalState(p) !== filter) return false;
+      return true;
+    });
+    const dir = sortDir === 'asc' ? 1 : -1;
+    rows.sort((a, b) => {
+      let d = 0;
+      switch (sortKey) {
+        case 'name':
+          d = a.name.localeCompare(b.name);
+          break;
+        case 'state':
+          d = STATE_RANK[portalState(a)] - STATE_RANK[portalState(b)];
+          break;
+        case 'failureCount':
+          d = a.failureCount - b.failureCount;
+          break;
+        case 'lastRunAt': {
+          const ta = a.lastRunAt ? new Date(a.lastRunAt).getTime() : 0;
+          const tb = b.lastRunAt ? new Date(b.lastRunAt).getTime() : 0;
+          d = ta - tb;
+          break;
+        }
+      }
+      // stable tiebreak by name so equal keys keep a predictable order
+      return (d || a.name.localeCompare(b.name)) * dir;
+    });
+    return rows;
+  }, [portals, q, filter, sortKey, sortDir]);
+
+  const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
+  const current = Math.min(page, pageCount);
+  const pageRows = visible.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+
+  const sortOn = (key: SortKey) => {
+    if (key === sortKey) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      // sensible default direction per column
+      setSortDir(key === 'name' ? 'asc' : 'desc');
+    }
+  };
+
   if (loading) return <div className="muted pad">Loading portals…</div>;
 
   return (
@@ -62,57 +158,126 @@ export function Portals() {
         <button className="btn ghost" onClick={load}>Refresh</button>
       </div>
       {error && <div className="error">{error}</div>}
+
+      <div className="toolbar">
+        <input
+          className="search"
+          placeholder="Search name or source…"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
+        <div className="segmented" role="group" aria-label="Filter by status">
+          {FILTERS.map((f) => (
+            <button
+              key={f}
+              className={filter === f ? 'seg active' : 'seg'}
+              onClick={() => setFilter(f)}
+            >
+              {f === 'all' ? 'All' : STATE_LABEL[f]}
+              <span className="seg-count">{counts[f] ?? 0}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="card">
         <table className="grid">
           <thead>
             <tr>
-              <th>Portal</th>
+              <SortTh label="Portal" k="name" sortKey={sortKey} sortDir={sortDir} onSort={sortOn} />
               <th>Source</th>
-              <th>Status</th>
-              <th>Last run</th>
-              <th>Fails</th>
+              <SortTh label="Status" k="state" sortKey={sortKey} sortDir={sortDir} onSort={sortOn} />
+              <SortTh label="Last run" k="lastRunAt" sortKey={sortKey} sortDir={sortDir} onSort={sortOn} />
+              <SortTh label="Fails" k="failureCount" sortKey={sortKey} sortDir={sortDir} onSort={sortOn} />
               <th>Enabled</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {portals.map((p) => (
-              <Fragment key={p.id}>
-                <tr className={p.enabled ? '' : 'row-off'}>
-                  <td>
-                    <strong>{p.name}</strong>
-                  </td>
-                  <td><code>{p.source}</code></td>
-                  <td>
-                    <span className={`pill ${p.status}`}>{p.status}</span>
-                  </td>
-                  <td className="muted">{fmtAgo(p.lastRunAt)}</td>
-                  <td className={p.failureCount ? 'warn' : 'muted'}>{p.failureCount}</td>
-                  <td>
-                    <label className="switch">
-                      <input type="checkbox" checked={p.enabled} onChange={() => toggle(p)} />
-                      <span className="slider" />
-                    </label>
-                  </td>
-                  <td>
-                    <button className="btn small" onClick={() => runTest(p)} disabled={testing[p.id]}>
-                      {testing[p.id] ? 'Testing…' : 'Run test'}
-                    </button>
-                  </td>
-                </tr>
-                {open === p.id && (
-                  <tr className="detail-row">
-                    <td colSpan={7}>
-                      <TestPanel result={results[p.id]} busy={testing[p.id]} onClose={() => setOpen(null)} />
+            {pageRows.length === 0 && (
+              <tr>
+                <td colSpan={7} className="muted pad center-cell">No portals match these filters.</td>
+              </tr>
+            )}
+            {pageRows.map((p) => {
+              const state = portalState(p);
+              return (
+                <Fragment key={p.id}>
+                  <tr className={p.enabled ? '' : 'row-off'}>
+                    <td><strong>{p.name}</strong></td>
+                    <td><code>{p.source}</code></td>
+                    <td><span className={`pill ${state}`}>{STATE_LABEL[state]}</span></td>
+                    <td className="muted">{fmtAgo(p.lastRunAt)}</td>
+                    <td className={p.failureCount ? 'warn' : 'muted'}>{p.failureCount}</td>
+                    <td>
+                      <label className="switch">
+                        <input type="checkbox" checked={p.enabled} onChange={() => toggle(p)} />
+                        <span className="slider" />
+                      </label>
+                    </td>
+                    <td>
+                      <button className="btn small" onClick={() => runTest(p)} disabled={testing[p.id]}>
+                        {testing[p.id] ? 'Testing…' : 'Run test'}
+                      </button>
                     </td>
                   </tr>
-                )}
-              </Fragment>
-            ))}
+                  {open === p.id && (
+                    <tr className="detail-row">
+                      <td colSpan={7}>
+                        <TestPanel result={results[p.id]} busy={testing[p.id]} onClose={() => setOpen(null)} />
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>
+
+      <div className="pager">
+        <span className="muted">
+          {visible.length === 0
+            ? '0 portals'
+            : `${(current - 1) * PAGE_SIZE + 1}–${Math.min(current * PAGE_SIZE, visible.length)} of ${visible.length}`}
+        </span>
+        <div className="pager-controls">
+          <button className="btn ghost small" disabled={current <= 1} onClick={() => setPage(current - 1)}>
+            ← Prev
+          </button>
+          <span className="muted">Page {current} / {pageCount}</span>
+          <button className="btn ghost small" disabled={current >= pageCount} onClick={() => setPage(current + 1)}>
+            Next →
+          </button>
+        </div>
+      </div>
     </section>
+  );
+}
+
+function SortTh({
+  label,
+  k,
+  sortKey,
+  sortDir,
+  onSort,
+}: {
+  label: string;
+  k: SortKey;
+  sortKey: SortKey;
+  sortDir: 'asc' | 'desc';
+  onSort: (k: SortKey) => void;
+}) {
+  const active = sortKey === k;
+  return (
+    <th
+      className={active ? 'sortable active' : 'sortable'}
+      onClick={() => onSort(k)}
+      aria-sort={active ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
+    >
+      {label}
+      <span className="sort-arrow">{active ? (sortDir === 'asc' ? '▲' : '▼') : '↕'}</span>
+    </th>
   );
 }
 
