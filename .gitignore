@@ -6,3 +6,4 @@ admin-ui/dist/
 *.log
 .DS_Store
 companies.csv
+admin-ui/*.tsbuildinfo
