@@ -83,7 +83,10 @@ function escapeHtml(s: string): string {
 /* ------------------------------------------------------------------ commands */
 
 const HELP =
-  'Commands:\n/status — service + portal health\n/ping — same thing, shorter to type';
+  'Commands:\n' +
+  '/ping — service + portal health\n' +
+  '/ping <n> — page n of the portal list\n' +
+  '/ping <company> — status for one company';
 
 let polling = false;
 /** in-flight long poll, so shutdown doesn't wait out the 30s timeout */
@@ -117,17 +120,14 @@ async function pollLoop(): Promise<void> {
   try {
     offset = await skipBacklog();
     await call('setMyCommands', {
-      commands: [
-        { command: 'status', description: 'Service + portal health' },
-        { command: 'ping', description: 'Service + portal health' },
-      ],
+      commands: [{ command: 'ping', description: 'Service + portal health' }],
     });
   } catch (err) {
     console.error('[telegram] command listener failed to start:', message(err));
     polling = false;
     return;
   }
-  console.log('[telegram] command listener polling for /status');
+  console.log('[telegram] command listener polling for /ping');
 
   while (polling) {
     try {
@@ -177,12 +177,13 @@ async function handleUpdate(update: TelegramUpdate): Promise<void> {
     return;
   }
 
-  // "/status@hugin_bot arg" → "/status"
-  const command = text.split(/\s+/)[0].split('@')[0].toLowerCase();
+  // "/ping@hugin_bot Acme" → command "/ping", arg "Acme"
+  const [head, ...rest] = text.split(/\s+/);
+  const command = head.split('@')[0].toLowerCase();
+  const arg = rest.join(' ').trim() || undefined;
   switch (command) {
-    case '/status':
     case '/ping':
-      await sendTo(chat, await statusMessage());
+      await sendTo(chat, await statusMessage(arg));
       break;
     case '/start':
     case '/help':
