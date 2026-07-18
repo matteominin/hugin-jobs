@@ -3,8 +3,19 @@ import type { Portal } from './types.js';
 
 const startedAt = new Date();
 
-/** How many portal lines fit in one /ping page. Keeps each message well under Telegram's 4096-char cap. */
-const PAGE_SIZE = 30;
+/** How many portal lines fit in one /ping page. Small enough to scan at a glance and page through with buttons. */
+const PAGE_SIZE = 12;
+
+/** An inline keyboard row of {text, callback_data} buttons Telegram renders under the message. */
+export interface InlineKeyboard {
+  inline_keyboard: Array<Array<{ text: string; callback_data: string }>>;
+}
+
+/** A message plus the optional navigation keyboard that belongs with it. */
+export interface StatusView {
+  text: string;
+  keyboard?: InlineKeyboard;
+}
 
 /** "3d 4h", "12m", "45s" — compact enough for a chat line. */
 function humanDuration(ms: number): string {
@@ -42,15 +53,24 @@ function portalFlags(portal: Portal): string {
  * `/ping 2`          → a later page of the portal list
  * `/ping <company>`  → detail for the portals whose name matches
  */
-export async function statusMessage(arg?: string): Promise<string> {
+export async function statusMessage(arg?: string): Promise<StatusView> {
   const query = arg?.trim();
-  if (query && !/^\d+$/.test(query)) return companyStatus(query);
+  if (query && !/^\d+$/.test(query)) return { text: await companyStatus(query) };
   const page = query ? Math.max(1, parseInt(query, 10)) : 1;
   return overviewStatus(page);
 }
 
+/** Prev/Next buttons for the overview, or nothing when it all fits on one page. */
+function navKeyboard(current: number, pageCount: number): InlineKeyboard | undefined {
+  if (pageCount <= 1) return undefined;
+  const row: InlineKeyboard['inline_keyboard'][number] = [];
+  if (current > 1) row.push({ text: '⬅️ Prev', callback_data: `ping:${current - 1}` });
+  if (current < pageCount) row.push({ text: 'Next ➡️', callback_data: `ping:${current + 1}` });
+  return { inline_keyboard: [row] };
+}
+
 /** Summary header plus one page of the enabled-portal list. */
-async function overviewStatus(page: number): Promise<string> {
+async function overviewStatus(page: number): Promise<StatusView> {
   const all = await portalsCol().find({}).toArray();
   const enabled = all.filter((p) => p.enabled);
   const disabled = all.filter((p) => !p.enabled);
@@ -83,17 +103,14 @@ async function overviewStatus(page: number): Promise<string> {
   }
 
   if (pageCount > 1) {
-    lines.push(
-      '',
-      `Page ${current}/${pageCount}${current < pageCount ? ` — /ping ${current + 1} for more` : ''}`,
-    );
+    lines.push('', `Page ${current}/${pageCount}`);
   }
 
   if (current === pageCount && disabled.length > 0) {
     lines.push('', `<b>Disabled</b>: ${disabled.map((p) => escapeHtml(p.name)).join(', ')}`);
   }
 
-  return lines.join('\n');
+  return { text: lines.join('\n'), keyboard: navKeyboard(current, pageCount) };
 }
 
 /** Detail for the portal(s) whose name contains `query` (case-insensitive). */

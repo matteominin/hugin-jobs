@@ -1,10 +1,15 @@
 import { config } from './config.js';
-import { statusMessage } from './status.js';
+import { statusMessage, type InlineKeyboard } from './status.js';
 import type { Job } from './types.js';
 
 interface TelegramUpdate {
   update_id: number;
   message?: { text?: string; chat?: { id: number | string } };
+  callback_query?: {
+    id: string;
+    data?: string;
+    message?: { message_id: number; chat?: { id: number | string } };
+  };
 }
 
 /** Notify every seeded chat about a matched job. */
@@ -47,17 +52,48 @@ async function sendMessage(text: string): Promise<void> {
   for (const chatId of config.telegramChatIds) await sendTo(chatId, text);
 }
 
-/** Send one HTML message to a single chat. */
-async function sendTo(chatId: string, text: string): Promise<void> {
+/** Send one HTML message to a single chat, optionally with an inline keyboard. */
+async function sendTo(chatId: string, text: string, keyboard?: InlineKeyboard): Promise<void> {
   const res = await api('sendMessage', {
     chat_id: chatId,
     text,
     parse_mode: 'HTML',
     disable_web_page_preview: true,
+    reply_markup: keyboard,
   });
   if (!res.ok) {
     console.error(`[telegram] send to ${chatId} failed: ${res.status} ${await res.text()}`);
   }
+}
+
+/** Replace an existing message in place — used when a nav button flips the page. */
+async function editMessage(
+  chatId: string,
+  messageId: number,
+  text: string,
+  keyboard?: InlineKeyboard,
+): Promise<void> {
+  const res = await api('editMessageText', {
+    chat_id: chatId,
+    message_id: messageId,
+    text,
+    parse_mode: 'HTML',
+    disable_web_page_preview: true,
+    reply_markup: keyboard,
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    // Tapping the same page again is a harmless no-op, not an error worth logging.
+    if (!body.includes('message is not modified')) {
+      console.error(`[telegram] edit ${chatId} failed: ${res.status} ${body}`);
+    }
+  }
+}
+
+/** Acknowledge a button tap so Telegram stops showing the loading spinner. */
+async function answerCallback(callbackId: string): Promise<void> {
+  const res = await api('answerCallbackQuery', { callback_query_id: callbackId });
+  if (!res.ok) console.error(`[telegram] answerCallbackQuery failed: ${res.status}`);
 }
 
 function api(method: string, body: unknown, signal?: AbortSignal): Promise<Response> {
@@ -134,7 +170,7 @@ async function pollLoop(): Promise<void> {
       inFlight = new AbortController();
       const updates = await call<TelegramUpdate[]>(
         'getUpdates',
-        { offset, timeout: 30, allowed_updates: ['message'] },
+        { offset, timeout: 30, allowed_updates: ['message', 'callback_query'] },
         inFlight.signal,
       );
       for (const update of updates) {
@@ -166,6 +202,8 @@ async function skipBacklog(): Promise<number> {
 }
 
 async function handleUpdate(update: TelegramUpdate): Promise<void> {
+  if (update.callback_query) return handleCallback(update.callback_query);
+
   const text = update.message?.text?.trim();
   const chatId = update.message?.chat?.id;
   if (!text || chatId === undefined) return;
@@ -182,15 +220,38 @@ async function handleUpdate(update: TelegramUpdate): Promise<void> {
   const command = head.split('@')[0].toLowerCase();
   const arg = rest.join(' ').trim() || undefined;
   switch (command) {
-    case '/ping':
-      await sendTo(chat, await statusMessage(arg));
+    case '/ping': {
+      const view = await statusMessage(arg);
+      await sendTo(chat, view.text, view.keyboard);
       break;
+    }
     case '/start':
     case '/help':
       await sendTo(chat, HELP);
       break;
     default:
       console.log(`[telegram] unknown command ${command} from ${chat}`);
+  }
+}
+
+/** A Prev/Next tap on the /ping overview: edit the message in place to the new page. */
+async function handleCallback(cb: NonNullable<TelegramUpdate['callback_query']>): Promise<void> {
+  const chatId = cb.message?.chat?.id;
+  const messageId = cb.message?.message_id;
+  try {
+    if (chatId === undefined || messageId === undefined) return;
+    const chat = String(chatId);
+    if (!config.telegramChatIds.includes(chat)) {
+      console.warn(`[telegram] ignored callback from unknown chat ${chat}`);
+      return;
+    }
+    const match = /^ping:(\d+)$/.exec(cb.data ?? '');
+    if (!match) return;
+    const view = await statusMessage(match[1]);
+    await editMessage(chat, messageId, view.text, view.keyboard);
+  } finally {
+    // Always answer, even on ignored taps, so the client's spinner clears.
+    await answerCallback(cb.id);
   }
 }
 
