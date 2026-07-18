@@ -3,12 +3,14 @@ import { AdobeSource } from './adobe.js';
 import { AirbnbSource } from './airbnb.js';
 import { AmazonSource } from './amazon.js';
 import { AppleSource } from './apple.js';
+import { AirtableSource } from './airtable.js';
 import { AsanaSource } from './asana.js';
 import { AsmlSource } from './asml.js';
 import { AtlassianSource } from './atlassian.js';
 import type { Source } from './base.js';
 import { BlockSource } from './block.js';
 import { BoltSource } from './bolt.js';
+import { BrexSource } from './brex.js';
 import { CelonisSource } from './celonis.js';
 import { CloudflareSource } from './cloudflare.js';
 import { CoinbaseSource } from './coinbase.js';
@@ -29,8 +31,11 @@ import { GitHubSource } from './github.js';
 import { GitLabSource } from './gitlab.js';
 import { GoogleSource } from './google.js';
 import { GraphcoreSource } from './graphcore.js';
+import { GleanSource } from './gleanwork.js';
 import { ImcSource } from './imc.js';
+import { JaneStreetSource } from './janestreet.js';
 import { JetBrainsSource } from './jetbrains.js';
+import { JumpTradingSource } from './jumptrading.js';
 import { LinearSource } from './linear.js';
 import { MicrosoftSource } from './microsoft.js';
 import { MiroSource } from './miro.js';
@@ -43,12 +48,16 @@ import { OpenAiSource } from './openai.js';
 import { PalantirSource } from './palantir.js';
 import { PerplexitySource } from './perplexity.js';
 import { PinterestSource } from './pinterest.js';
+import { PostmanSource } from './postman.js';
 import { QualcommSource } from './qualcomm.js';
+import { QuoraSource } from './quora.js';
 import { RampSource } from './ramp.js';
 import { RobinhoodSource } from './robinhood.js';
 import { RobloxSource } from './roblox.js';
 import { SamsaraSource } from './samsara.js';
+import { ScaleAiSource } from './scaleai.js';
 import { SkyscannerSource } from './skyscanner.js';
+import { TailscaleSource } from './tailscale.js';
 import { TwilioSource } from './twilio.js';
 import { ZscalerSource } from './zscaler.js';
 import { SnowflakeSource } from './snowflake.js';
@@ -111,6 +120,15 @@ const registry: Record<string, (portal: Portal) => Source> = {
   samsara: (portal) => new SamsaraSource(portal),
   robinhood: (portal) => new RobinhoodSource(portal),
   ramp: (portal) => new RampSource(portal),
+  brex: (portal) => new BrexSource(portal),
+  scaleai: (portal) => new ScaleAiSource(portal),
+  tailscale: (portal) => new TailscaleSource(portal),
+  postman: (portal) => new PostmanSource(portal),
+  airtable: (portal) => new AirtableSource(portal),
+  glean: (portal) => new GleanSource(portal),
+  janestreet: (portal) => new JaneStreetSource(portal),
+  jumptrading: (portal) => new JumpTradingSource(portal),
+  quora: (portal) => new QuoraSource(portal),
   netflix: (portal) => new NetflixSource(portal),
   asml: (portal) => new AsmlSource(portal),
   adobe: (portal) => new AdobeSource(portal),

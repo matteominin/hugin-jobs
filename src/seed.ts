@@ -403,6 +403,69 @@ export const portalsSeed: Portal[] = [
     source: 'ramp',
     company: 'Ramp'
   },
+  {
+    name: 'Brex',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'brex',
+    company: 'Brex'
+  },
+  {
+    name: 'Scale AI',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'scaleai',
+    company: 'Scale AI'
+  },
+  {
+    name: 'Tailscale',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'tailscale',
+    company: 'Tailscale'
+  },
+  {
+    name: 'Postman',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'postman',
+    company: 'Postman'
+  },
+  {
+    name: 'Airtable',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'airtable',
+    company: 'Airtable'
+  },
+  {
+    name: 'Glean',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'glean',
+    company: 'Glean'
+  },
+  {
+    name: 'Jane Street',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'janestreet',
+    company: 'Jane Street'
+  },
+  {
+    name: 'Jump Trading',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'jumptrading',
+    company: 'Jump Trading'
+  },
+  {
+    name: 'Quora',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'quora',
+    company: 'Quora'
+  },
 ];
 
 async function main(): Promise<void> {

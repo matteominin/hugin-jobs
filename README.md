@@ -168,6 +168,24 @@ npm run dry-run:sources:robinhood # test only Robinhood, no LLM calls
 npm run dry-run:robinhood        # test only Robinhood with LLM judging
 npm run dry-run:sources:ramp      # test only Ramp, no LLM calls
 npm run dry-run:ramp             # test only Ramp with LLM judging
+npm run dry-run:sources:brex      # test only Brex, no LLM calls
+npm run dry-run:brex             # test only Brex with LLM judging
+npm run dry-run:sources:scaleai   # test only Scale AI, no LLM calls
+npm run dry-run:scaleai          # test only Scale AI with LLM judging
+npm run dry-run:sources:tailscale # test only Tailscale, no LLM calls
+npm run dry-run:tailscale        # test only Tailscale with LLM judging
+npm run dry-run:sources:postman   # test only Postman, no LLM calls
+npm run dry-run:postman          # test only Postman with LLM judging
+npm run dry-run:sources:airtable  # test only Airtable, no LLM calls
+npm run dry-run:airtable         # test only Airtable with LLM judging
+npm run dry-run:sources:glean     # test only Glean, no LLM calls
+npm run dry-run:glean            # test only Glean with LLM judging
+npm run dry-run:sources:janestreet # test only Jane Street, no LLM calls
+npm run dry-run:janestreet       # test only Jane Street with LLM judging
+npm run dry-run:sources:jumptrading # test only Jump Trading, no LLM calls
+npm run dry-run:jumptrading      # test only Jump Trading with LLM judging
+npm run dry-run:sources:quora     # test only Quora, no LLM calls
+npm run dry-run:quora            # test only Quora with LLM judging
 ```
 
 Both commands run enabled portals once and exit. Dry-run still reads MongoDB settings, portals
