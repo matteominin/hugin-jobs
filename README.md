@@ -17,7 +17,9 @@ ignored. The listener is off in dry-run and `HUGIN_RUN_ONCE` modes.
 
 | Command | Does |
 | --- | --- |
-| `/status`, `/ping` | uptime, job counts, and each enabled portal's last run / install / failure state |
+| `/ping` | uptime, job counts, and each enabled portal's last run / install / failure state (paginated) |
+| `/ping <n>` | page `n` of the portal list |
+| `/ping <company>` | job counts + last run for the portal(s) matching that name |
 | `/help` | lists the commands |
 
 ## Setup
@@ -33,9 +35,12 @@ MongoDB is expected on `mongodb://localhost:27018` (local docker instance).
 
 ## Admin dashboard
 
-A password-protected web dashboard (React + Passport) to watch the service without touching the
-scheduler. It runs as its own process and never starts a job cycle, the LLM, or Telegram — the
-only writes it makes are the ones you trigger (enabling/disabling a portal).
+A password-protected web dashboard (React frontend + JWT-authenticated API) to watch the service
+without touching the scheduler. It runs as its own process and never starts a job cycle, the LLM,
+or Telegram — the only writes it makes are the ones you trigger (enabling/disabling a portal).
+
+Auth is a stateless bearer token (no cookies/sessions), so the frontend can be served by the API
+itself (same origin) **or** hosted separately (e.g. Firebase) and pointed at the API cross-origin.
 
 It lets you:
 
@@ -49,11 +54,11 @@ It lets you:
 Access is limited to **two admin accounts**, stored in Mongo as bcrypt hashes.
 
 ```bash
-# 1. set the two accounts + a session secret in .env
-#    ADMIN1_USER / ADMIN1_PASS, ADMIN2_USER / ADMIN2_PASS, SESSION_SECRET, ADMIN_PORT
+# 1. set the two accounts + JWT_SECRET in .env
+#    ADMIN1_USER / ADMIN1_PASS, ADMIN2_USER / ADMIN2_PASS, JWT_SECRET
 npm run seed:admins        # upserts exactly the two accounts (removes any others)
 
-# 2a. production: build the UI once, then serve API + UI from one port
+# 2a. production (single origin): build the UI once, serve API + UI from one port
 npm run admin:ui:build
 npm run admin               # http://localhost:4000
 
@@ -63,6 +68,24 @@ npm run admin:ui:dev       # terminal 2  → open http://localhost:5173
 ```
 
 Re-running `npm run seed:admins` rotates the two passwords; it never creates a third account.
+
+### Split hosting (frontend on Firebase, API on Render)
+
+Because auth is a bearer token, you can host the two halves apart:
+
+- **API (Render):** deploy as a Web Service running `node dist/admin/index.js`. Set
+  `ADMIN_CORS_ORIGIN` to the frontend's URL (e.g. `https://your-app.web.app`) so the browser is
+  allowed to call it, plus `MONGODB_URI`, `MONGODB_DB`, `JWT_SECRET`, and the four `ADMIN*` vars.
+- **Frontend (Firebase Hosting):** build with `VITE_API_BASE` pointing at the Render URL, then
+  deploy `admin-ui/dist`:
+
+  ```bash
+  VITE_API_BASE=https://your-api.onrender.com npm run admin:ui:build
+  firebase deploy --only hosting        # serves admin-ui/dist
+  ```
+
+The token is kept in `localStorage` and sent as `Authorization: Bearer …`, so no third-party
+cookies are involved — it keeps working in Safari and post-third-party-cookie Chrome.
 
 ## Safe testing
 
@@ -186,6 +209,26 @@ npm run dry-run:sources:jumptrading # test only Jump Trading, no LLM calls
 npm run dry-run:jumptrading      # test only Jump Trading with LLM judging
 npm run dry-run:sources:quora     # test only Quora, no LLM calls
 npm run dry-run:quora            # test only Quora with LLM judging
+npm run dry-run:sources:davinci   # test only Da Vinci Derivatives, no LLM calls
+npm run dry-run:davinci          # test only Da Vinci Derivatives with LLM judging
+npm run dry-run:sources:wayve     # test only Wayve, no LLM calls
+npm run dry-run:wayve            # test only Wayve with LLM judging
+npm run dry-run:sources:doctolib  # test only Doctolib, no LLM calls
+npm run dry-run:doctolib         # test only Doctolib with LLM judging
+npm run dry-run:sources:n26       # test only N26, no LLM calls
+npm run dry-run:n26              # test only N26 with LLM judging
+npm run dry-run:sources:monzo     # test only Monzo, no LLM calls
+npm run dry-run:monzo            # test only Monzo with LLM judging
+npm run dry-run:sources:getyourguide # test only GetYourGuide, no LLM calls
+npm run dry-run:getyourguide     # test only GetYourGuide with LLM judging
+npm run dry-run:sources:wolt      # test only Wolt, no LLM calls
+npm run dry-run:wolt             # test only Wolt with LLM judging
+npm run dry-run:sources:deepl     # test only DeepL, no LLM calls
+npm run dry-run:deepl            # test only DeepL with LLM judging
+npm run dry-run:sources:qonto     # test only Qonto, no LLM calls
+npm run dry-run:qonto            # test only Qonto with LLM judging
+npm run dry-run:sources:mollie    # test only Mollie, no LLM calls
+npm run dry-run:mollie           # test only Mollie with LLM judging
 ```
 
 Both commands run enabled portals once and exit. Dry-run still reads MongoDB settings, portals
