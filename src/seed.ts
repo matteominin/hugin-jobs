@@ -193,6 +193,76 @@ export const portalsSeed: Portal[] = [
     source: 'palantir',
     company: 'Palantir'
   },
+  {
+    name: 'Coinbase',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'coinbase',
+    company: 'Coinbase'
+  },
+  {
+    name: 'Datadog',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'datadog',
+    company: 'Datadog'
+  },
+  {
+    name: 'MongoDB',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'mongodb',
+    company: 'MongoDB'
+  },
+  {
+    name: 'Figma',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'figma',
+    company: 'Figma'
+  },
+  {
+    name: 'GitLab',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'gitlab',
+    company: 'GitLab'
+  },
+  {
+    name: 'Skyscanner',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'skyscanner',
+    company: 'Skyscanner'
+  },
+  {
+    name: 'Pinterest',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'pinterest',
+    company: 'Pinterest'
+  },
+  {
+    name: 'Cohere',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'cohere',
+    company: 'Cohere'
+  },
+  {
+    name: 'Perplexity',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'perplexity',
+    company: 'Perplexity'
+  },
+  {
+    name: 'Deliveroo',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'deliveroo',
+    company: 'Deliveroo'
+  },
 ];
 
 async function main(): Promise<void> {
