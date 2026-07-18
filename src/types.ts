@@ -103,3 +103,15 @@ export interface Settings {
   /** when portals may run; defaults to 06:00–24:00 Europe/Rome when absent */
   activeHours?: ActiveHours;
 }
+
+/**
+ * An admin who may sign into the dashboard. Passwords are stored only as a bcrypt
+ * hash (see src/admin/seedAdmins.ts); the plaintext never touches the DB. Limited
+ * to two accounts by the seed script.
+ */
+export interface AdminUser {
+  _id?: ObjectId;
+  username: string;
+  passwordHash: string;
+  createdAt: Date;
+}

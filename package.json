@@ -45,18 +45,33 @@
     "dry-run:sources:atlassian": "HUGIN_PORTAL=atlassian HUGIN_DRY_RUN=1 HUGIN_DRY_RUN_SKIP_LLM=1 HUGIN_RUN_ONCE=1 tsx src/index.ts",
     "start": "node dist/index.js",
     "build": "tsc",
-    "seed": "tsx src/seed.ts"
+    "seed": "tsx src/seed.ts",
+    "seed:admins": "tsx src/admin/seedAdmins.ts",
+    "admin": "tsx src/admin/index.ts",
+    "admin:dev": "tsx watch src/admin/index.ts",
+    "admin:ui:dev": "npm --prefix admin-ui run dev",
+    "admin:ui:build": "npm --prefix admin-ui run build"
   },
   "dependencies": {
     "@ai-sdk/deepseek": "^1.0.0",
     "ai": "^5.0.210",
+    "bcryptjs": "^3.0.3",
     "cheerio": "^1.0.0",
+    "connect-mongo": "^6.0.0",
     "dotenv": "^16.4.0",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
     "mongodb": "^6.10.0",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
     "zod": "^3.23.0"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/express-session": "^1.19.0",
     "@types/node": "^22.0.0",
+    "@types/passport": "^1.0.17",
+    "@types/passport-local": "^1.0.38",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0"
   }

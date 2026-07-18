@@ -13,6 +13,10 @@ function envList(name: string): string[] {
 
 export const config = {
   port: Math.max(1, Number(process.env.PORT ?? '3000') || 3000),
+  /** port the admin dashboard server listens on */
+  adminPort: Math.max(1, Number(process.env.ADMIN_PORT ?? '4000') || 4000),
+  /** secret used to sign admin session cookies; must be set in production */
+  sessionSecret: process.env.SESSION_SECRET ?? 'hugin-admin-dev-secret-change-me',
   mongoUri: process.env.MONGODB_URI ?? 'mongodb://localhost:27018/?directConnection=true',
   mongoDb: process.env.MONGODB_DB ?? 'hugin_jobs',
   deepseekApiKey: process.env.DEEPSEEK_API_KEY ?? '',

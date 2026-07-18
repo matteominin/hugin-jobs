@@ -1,6 +1,6 @@
 import { Collection, Db, MongoClient } from 'mongodb';
 import { config } from './config.js';
-import type { Job, Portal, Settings } from './types.js';
+import type { AdminUser, Job, Portal, Settings } from './types.js';
 
 let client: MongoClient | null = null;
 let db: Db | null = null;
@@ -30,3 +30,4 @@ function getDb(): Db {
 export const portals = (): Collection<Portal> => getDb().collection<Portal>('portals');
 export const jobs = (): Collection<Job> => getDb().collection<Job>('jobs');
 export const settings = (): Collection<Settings> => getDb().collection<Settings>('settings');
+export const adminUsers = (): Collection<AdminUser> => getDb().collection<AdminUser>('adminUsers');
