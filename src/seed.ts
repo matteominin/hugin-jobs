@@ -333,6 +333,76 @@ export const portalsSeed: Portal[] = [
     source: 'confluent',
     company: 'Confluent'
   },
+  {
+    name: 'IMC Trading',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'imc',
+    company: 'IMC'
+  },
+  {
+    name: 'Fastly',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'fastly',
+    company: 'Fastly'
+  },
+  {
+    name: 'Okta',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'okta',
+    company: 'Okta'
+  },
+  {
+    name: 'Zscaler',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'zscaler',
+    company: 'Zscaler'
+  },
+  {
+    name: 'Asana',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'asana',
+    company: 'Asana'
+  },
+  {
+    name: 'Block',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'block',
+    company: 'Block'
+  },
+  {
+    name: 'Roblox',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'roblox',
+    company: 'Roblox'
+  },
+  {
+    name: 'Samsara',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'samsara',
+    company: 'Samsara'
+  },
+  {
+    name: 'Robinhood',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'robinhood',
+    company: 'Robinhood'
+  },
+  {
+    name: 'Ramp',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'ramp',
+    company: 'Ramp'
+  },
 ];
 
 async function main(): Promise<void> {

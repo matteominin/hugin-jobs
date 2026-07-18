@@ -3,9 +3,11 @@ import { AdobeSource } from './adobe.js';
 import { AirbnbSource } from './airbnb.js';
 import { AmazonSource } from './amazon.js';
 import { AppleSource } from './apple.js';
+import { AsanaSource } from './asana.js';
 import { AsmlSource } from './asml.js';
 import { AtlassianSource } from './atlassian.js';
 import type { Source } from './base.js';
+import { BlockSource } from './block.js';
 import { BoltSource } from './bolt.js';
 import { CelonisSource } from './celonis.js';
 import { CloudflareSource } from './cloudflare.js';
@@ -21,11 +23,13 @@ import { DropboxSource } from './dropbox.js';
 import { AdyenSource } from './adyen.js';
 import { ElasticSource } from './elastic.js';
 import { FigmaSource } from './figma.js';
+import { FastlySource } from './fastly.js';
 import { FlowTradersSource } from './flowtraders.js';
 import { GitHubSource } from './github.js';
 import { GitLabSource } from './gitlab.js';
 import { GoogleSource } from './google.js';
 import { GraphcoreSource } from './graphcore.js';
+import { ImcSource } from './imc.js';
 import { JetBrainsSource } from './jetbrains.js';
 import { LinearSource } from './linear.js';
 import { MicrosoftSource } from './microsoft.js';
@@ -34,13 +38,19 @@ import { MongoDbSource } from './mongodb.js';
 import { NetflixSource } from './netflix.js';
 import { NotionSource } from './notion.js';
 import { NvidiaSource } from './nvidia.js';
+import { OktaSource } from './okta.js';
 import { OpenAiSource } from './openai.js';
 import { PalantirSource } from './palantir.js';
 import { PerplexitySource } from './perplexity.js';
 import { PinterestSource } from './pinterest.js';
 import { QualcommSource } from './qualcomm.js';
+import { RampSource } from './ramp.js';
+import { RobinhoodSource } from './robinhood.js';
+import { RobloxSource } from './roblox.js';
+import { SamsaraSource } from './samsara.js';
 import { SkyscannerSource } from './skyscanner.js';
 import { TwilioSource } from './twilio.js';
+import { ZscalerSource } from './zscaler.js';
 import { SnowflakeSource } from './snowflake.js';
 import { SpotifySource } from './spotify.js';
 import { StripeSource } from './stripe.js';
@@ -91,6 +101,16 @@ const registry: Record<string, (portal: Portal) => Source> = {
   miro: (portal) => new MiroSource(portal),
   linear: (portal) => new LinearSource(portal),
   confluent: (portal) => new ConfluentSource(portal),
+  imc: (portal) => new ImcSource(portal),
+  fastly: (portal) => new FastlySource(portal),
+  okta: (portal) => new OktaSource(portal),
+  zscaler: (portal) => new ZscalerSource(portal),
+  asana: (portal) => new AsanaSource(portal),
+  block: (portal) => new BlockSource(portal),
+  roblox: (portal) => new RobloxSource(portal),
+  samsara: (portal) => new SamsaraSource(portal),
+  robinhood: (portal) => new RobinhoodSource(portal),
+  ramp: (portal) => new RampSource(portal),
   netflix: (portal) => new NetflixSource(portal),
   asml: (portal) => new AsmlSource(portal),
   adobe: (portal) => new AdobeSource(portal),
