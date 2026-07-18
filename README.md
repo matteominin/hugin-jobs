@@ -69,13 +69,23 @@ npm run admin:ui:dev       # terminal 2  → open http://localhost:5173
 
 Re-running `npm run seed:admins` rotates the two passwords; it never creates a third account.
 
+The API can run three ways, all sharing the same code:
+
+- **Standalone** (`npm run admin` → `src/admin/index.ts`) — just the dashboard, nothing else.
+- **Inside the scheduler** — `src/index.ts` already serves the admin dashboard + API on its HTTP
+  port, so your existing scheduler service exposes it with **no extra service to deploy** (it must
+  be a Render *Web Service*, not a Background Worker, so the port is public).
+- **Combined build for one port** (`npm run admin:ui:build` then either of the above) — API also
+  serves the built UI.
+
 ### Split hosting (frontend on Firebase, API on Render)
 
 Because auth is a bearer token, you can host the two halves apart:
 
-- **API (Render):** deploy as a Web Service running `node dist/admin/index.js`. Set
-  `ADMIN_CORS_ORIGIN` to the frontend's URL (e.g. `https://your-app.web.app`) so the browser is
-  allowed to call it, plus `MONGODB_URI`, `MONGODB_DB`, `JWT_SECRET`, and the four `ADMIN*` vars.
+- **API (Render):** either your existing scheduler Web Service, or a separate Web Service running
+  `node dist/admin/index.js`. Set `ADMIN_CORS_ORIGIN` to the frontend's URL (e.g.
+  `https://your-app.web.app`) so the browser is allowed to call it, plus `MONGODB_URI`,
+  `MONGODB_DB`, `JWT_SECRET`, and the four `ADMIN*` vars.
 - **Frontend (Firebase Hosting):** build with `VITE_API_BASE` pointing at the Render URL, then
   deploy `admin-ui/dist`:
 
