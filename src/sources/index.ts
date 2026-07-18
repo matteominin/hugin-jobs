@@ -7,20 +7,29 @@ import { AsmlSource } from './asml.js';
 import { AtlassianSource } from './atlassian.js';
 import type { Source } from './base.js';
 import { BoltSource } from './bolt.js';
+import { CelonisSource } from './celonis.js';
 import { CloudflareSource } from './cloudflare.js';
 import { CoinbaseSource } from './coinbase.js';
 import { CohereSource } from './cohere.js';
+import { ConfluentSource } from './confluent.js';
 import { DatabricksSource } from './databricks.js';
 import { DatadogSource } from './datadog.js';
 import { DeepMindSource } from './deepmind.js';
 import { DeliverooSource } from './deliveroo.js';
 import { DiscordSource } from './discord.js';
 import { DropboxSource } from './dropbox.js';
+import { AdyenSource } from './adyen.js';
+import { ElasticSource } from './elastic.js';
 import { FigmaSource } from './figma.js';
+import { FlowTradersSource } from './flowtraders.js';
 import { GitHubSource } from './github.js';
 import { GitLabSource } from './gitlab.js';
 import { GoogleSource } from './google.js';
+import { GraphcoreSource } from './graphcore.js';
+import { JetBrainsSource } from './jetbrains.js';
+import { LinearSource } from './linear.js';
 import { MicrosoftSource } from './microsoft.js';
+import { MiroSource } from './miro.js';
 import { MongoDbSource } from './mongodb.js';
 import { NetflixSource } from './netflix.js';
 import { NotionSource } from './notion.js';
@@ -31,6 +40,7 @@ import { PerplexitySource } from './perplexity.js';
 import { PinterestSource } from './pinterest.js';
 import { QualcommSource } from './qualcomm.js';
 import { SkyscannerSource } from './skyscanner.js';
+import { TwilioSource } from './twilio.js';
 import { SnowflakeSource } from './snowflake.js';
 import { SpotifySource } from './spotify.js';
 import { StripeSource } from './stripe.js';
@@ -71,6 +81,16 @@ const registry: Record<string, (portal: Portal) => Source> = {
   cohere: (portal) => new CohereSource(portal),
   perplexity: (portal) => new PerplexitySource(portal),
   deliveroo: (portal) => new DeliverooSource(portal),
+  adyen: (portal) => new AdyenSource(portal),
+  flowtraders: (portal) => new FlowTradersSource(portal),
+  jetbrains: (portal) => new JetBrainsSource(portal),
+  elastic: (portal) => new ElasticSource(portal),
+  graphcore: (portal) => new GraphcoreSource(portal),
+  twilio: (portal) => new TwilioSource(portal),
+  celonis: (portal) => new CelonisSource(portal),
+  miro: (portal) => new MiroSource(portal),
+  linear: (portal) => new LinearSource(portal),
+  confluent: (portal) => new ConfluentSource(portal),
   netflix: (portal) => new NetflixSource(portal),
   asml: (portal) => new AsmlSource(portal),
   adobe: (portal) => new AdobeSource(portal),

@@ -263,6 +263,76 @@ export const portalsSeed: Portal[] = [
     source: 'deliveroo',
     company: 'Deliveroo'
   },
+  {
+    name: 'Adyen',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'adyen',
+    company: 'Adyen'
+  },
+  {
+    name: 'Flow Traders',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'flowtraders',
+    company: 'Flow Traders'
+  },
+  {
+    name: 'JetBrains',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'jetbrains',
+    company: 'JetBrains'
+  },
+  {
+    name: 'Elastic',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'elastic',
+    company: 'Elastic'
+  },
+  {
+    name: 'Graphcore',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'graphcore',
+    company: 'Graphcore'
+  },
+  {
+    name: 'Twilio',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'twilio',
+    company: 'Twilio'
+  },
+  {
+    name: 'Celonis',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'celonis',
+    company: 'Celonis'
+  },
+  {
+    name: 'Miro',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'miro',
+    company: 'Miro'
+  },
+  {
+    name: 'Linear',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'linear',
+    company: 'Linear'
+  },
+  {
+    name: 'Confluent',
+    enabled: true,
+    intervalSeconds: 60 * 20,
+    source: 'confluent',
+    company: 'Confluent'
+  },
 ];
 
 async function main(): Promise<void> {
