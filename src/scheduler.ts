@@ -15,6 +15,13 @@ import { Semaphore } from './util/semaphore.js';
 
 let stopped = false;
 const timers = new Set<NodeJS.Timeout>();
+type PortalLoop = {
+  portal: Portal;
+  runner: JobRunner;
+  timer: NodeJS.Timeout | null;
+  active: boolean;
+};
+const portalLoops = new Map<string, PortalLoop>();
 
 /**
  * Every portal run in the process goes through here, so at most
@@ -37,6 +44,26 @@ async function runGated(portal: Portal, runner: JobRunner): Promise<void> {
   });
 }
 
+function portalKey(portal: Portal): string {
+  if (!portal._id) throw new Error(`portal ${portal.name} is missing _id`);
+  return portal._id.toString();
+}
+
+function clearPortalTimer(loop: PortalLoop): void {
+  if (!loop.timer) return;
+  clearTimeout(loop.timer);
+  timers.delete(loop.timer);
+  loop.timer = null;
+}
+
+function stopPortalLoop(portalId: string): void {
+  const loop = portalLoops.get(portalId);
+  if (!loop) return;
+  loop.active = false;
+  clearPortalTimer(loop);
+  portalLoops.delete(portalId);
+}
+
 /**
  * Read the window fresh every cycle rather than at startup, so editing the
  * settings doc takes effect without a restart. A settings read that fails must
@@ -55,11 +82,6 @@ async function currentActiveHours(): Promise<ActiveHours> {
   }
 }
 
-function reschedule(loop: () => void, delayMs: number): void {
-  const timer = setTimeout(loop, delayMs);
-  timers.add(timer);
-}
-
 /**
  * Self-rescheduling loop per portal: run, then schedule the next run only after
  * the current one finishes, so cycles never overlap. Errors are caught so one
@@ -72,27 +94,62 @@ function reschedule(loop: () => void, delayMs: number): void {
  * no LLM, no Telegram) and the loop sleeps until the window reopens. Dry-runs
  * ignore the window: they never write or notify, so it would only get in the way.
  */
-function schedulePortal(portal: Portal): void {
-  const runner = new JobRunner(portal, getSource(portal));
-  const loop = async () => {
-    if (stopped) return;
+async function runPortalLoop(loop: PortalLoop): Promise<void> {
+  if (stopped || !loop.active) return;
 
-    const hours = await currentActiveHours();
-    if (!config.dryRun && !isWithinActiveHours(new Date(), hours)) {
-      const waitMs = msUntilActive(new Date(), hours);
-      console.log(
-        `[${portal.name}] outside active window (${describeActiveHours(hours)}) — next run in ${(waitMs / 3600000).toFixed(1)}h`,
-      );
-      reschedule(loop, waitMs);
-      return;
+  if (loop.timer) {
+    timers.delete(loop.timer);
+    loop.timer = null;
+  }
+
+  const { portal, runner } = loop;
+  const key = portalKey(portal);
+  const hours = await currentActiveHours();
+  if (!config.dryRun && !isWithinActiveHours(new Date(), hours)) {
+    const waitMs = msUntilActive(new Date(), hours);
+    console.log(
+      `[${portal.name}] outside active window (${describeActiveHours(hours)}) — next run in ${(waitMs / 3600000).toFixed(1)}h`,
+    );
+    if (!stopped && loop.active) {
+      const timer = setTimeout(() => void runPortalLoop(loop), waitMs);
+      timers.add(timer);
+      loop.timer = timer;
     }
+    return;
+  }
 
-    await runGated(portal, runner);
-    // stop rescheduling a portal that auto-disabled after repeated failures
-    if (stopped || runner.disabled) return;
-    reschedule(loop, portal.intervalSeconds * 1000);
+  await runGated(portal, runner);
+  // stop rescheduling a portal that auto-disabled after repeated failures
+  if (stopped || !loop.active || runner.disabled) {
+    portalLoops.delete(key);
+    return;
+  }
+
+  const timer = setTimeout(() => void runPortalLoop(loop), portal.intervalSeconds * 1000);
+  timers.add(timer);
+  loop.timer = timer;
+}
+
+function schedulePortal(portal: Portal): void {
+  const key = portalKey(portal);
+  stopPortalLoop(key);
+  const loop: PortalLoop = {
+    portal,
+    runner: new JobRunner(portal, getSource(portal)),
+    timer: null,
+    active: true,
   };
-  void loop();
+  portalLoops.set(key, loop);
+  void runPortalLoop(loop);
+}
+
+export function syncPortalLoop(portal: Portal): void {
+  const key = portalKey(portal);
+  if (!portal.enabled) {
+    stopPortalLoop(key);
+    return;
+  }
+  schedulePortal(portal);
 }
 
 export async function startScheduler(): Promise<void> {
@@ -152,6 +209,7 @@ function filterPortals(portals: Portal[]): Portal[] {
 
 export function stopScheduler(): void {
   stopped = true;
+  for (const key of [...portalLoops.keys()]) stopPortalLoop(key);
   for (const t of timers) clearTimeout(t);
   timers.clear();
 }

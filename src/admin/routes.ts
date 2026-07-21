@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { ObjectId } from 'mongodb';
 import { adminUsers, jobs as jobsCol, portals as portalsCol } from '../db.js';
 import { getSource } from '../sources/index.js';
+import { syncPortalLoop } from '../scheduler.js';
 import type { Portal } from '../types.js';
 import { ensureAuthenticated, signToken } from './auth.js';
 
@@ -79,6 +80,7 @@ api.patch('/portals/:id', async (req, res, next) => {
       { returnDocument: 'after' },
     );
     if (!updated) return res.status(404).json({ error: 'Portal not found' });
+    syncPortalLoop(updated);
     res.json({ portal: portalView(updated) });
   } catch (err) {
     next(err);
